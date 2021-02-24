@@ -20,6 +20,7 @@
 | 참가자 이름 |      소속       |               Github 프로필               |                                               학습 자료                                               |           정리 자료           |
 | :---------: | :-------------: | :---------------------------------------: | :---------------------------------------------------------------------------------------------------: | :---------------------------: |
 |   김민수    | Devsisters Corp | [alstn2468](https://github.com/alstn2468) | [함수형 자바스크립트 프로그래밍 - 유인동](https://book.naver.com/bookdb/book_detail.nhn?bid=12800140) | [:link:](alstn2468/README.md) |
+|   임정운    | Morpheus3D Corp | [jungwoonlim](https://github.com/jungwoonlim) | [함수형 자바스크립트 프로그래밍 - 유인동](https://book.naver.com/bookdb/book_detail.nhn?bid=12800140) | [:link:](jungwoonlim/README.md) |
 
 <div align="center">
 
