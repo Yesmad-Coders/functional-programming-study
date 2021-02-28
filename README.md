@@ -22,6 +22,7 @@
 |   김민수    | Devsisters Corp | [alstn2468](https://github.com/alstn2468) | [함수형 자바스크립트 프로그래밍 - 유인동](https://book.naver.com/bookdb/book_detail.nhn?bid=12800140) | [:link:](alstn2468/README.md) |
 | NoMoreBuild | 스타트업 | [NoMoreBuild](https://github.com/NoMoreBuild) |  [함수형 자바스크립트 프로그래밍 - 유인동](https://book.naver.com/bookdb/book_detail.nhn?bid=12800140) | [:link:](nomorebuild/README.md) |
 |   임정운    | Morpheus3D Corp | [jungwoonlim](https://github.com/jungwoonlim) | [함수형 자바스크립트 프로그래밍 - 유인동](https://book.naver.com/bookdb/book_detail.nhn?bid=12800140) | [:link:](jungwoonlim/README.md) |
+|   김리하   | - | [bravacoreana](https://github.com/bravacoreana) | [함수형 자바스크립트 프로그래밍 - 유인동](https://book.naver.com/bookdb/book_detail.nhn?bid=12800140) | [:link:](bravacoreana/README.md) |
 
 <div align="center">
 
