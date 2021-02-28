@@ -1,13 +1,3 @@
-function addMaker(a) {
-  return function (b) {
-    return a + b;
-  };
-}
-
-function bvalue(key) {
-  return function (obj) {
-    return obj[key];
-  };
-}
+const bvalue = require('./common/bvalue');
 
 bvalue('a')({ a: 'hi', b: 'hello' }); // hi
