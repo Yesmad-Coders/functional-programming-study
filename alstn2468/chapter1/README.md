@@ -4,6 +4,7 @@
 
 - 1.1 함수형 프로그래밍 그거 먹는 건가요? [:link:](#11-함수형-프로그래밍-그거-먹는-건가요)
 - 1.2 함수형 자바스크립트의 실용성 [:link:](#12-함수형-자바스크립트의-실용성)
+- 1.3 함수형 자바스크립트의 실용성 2 [:link:](#13-함수형-자바스크립트의-실용성-2)
 
 </details><br/>
 
@@ -28,7 +29,7 @@
 
 함수형 자바스크립트에 관심을 가지게 되면 아래와 같은 예제들을 보았을 것이다.
 
-- 코드 1-1 `addMaker`
+- <span id="code-1-1">코드 1-1 </span>`addMaker`
 
 ```javascript
 function addMaker(a) {
@@ -344,7 +345,7 @@ console.log(names); // ["ID", "BJ", "JM"]
 
 아래와 같이 작은 함수를 하나 더 만들면 변수 할당을 모두 없앨 수 있다.
 
-- 코드 1-11 함수 중첩 2
+- <span id="code-1-11">코드 1-11 </span>함수 중첩 2
 
 ```javascript
 function log_length(value) {
@@ -388,3 +389,54 @@ console.log(
 `log_length`는 길이를 출력한 후 받은 인자를 그대로 `console.log`에 전달하고 받은 값을 출력한다.
 
 <sub id="2020-02-28"><sup>-- 2020-02-28 --</sup></sub>
+
+### 1.2.6 함수를 값으로 다룬 예제의 실용성
+
+[코드 1-1](#code-1-1)에서 소개한 `addMaker`와 비슷한 패턴의 함수가 실제로 많이 사용된다.
+
+`addMaker` 함수와 비슷한 패턴의 함수은 `bvalue` 함수를 만들면 [코드1-11](#code-1-11)의 코드를 더 줄일 수 있다.
+
+- 코드 1-13 함수를 리턴하는 함수 `bvalue`
+
+```javascript
+function addMaker(a) {
+  return function (b) {
+    return a + b;
+  };
+}
+
+function bvalue(key) {
+  return function (obj) {
+    return obj[key];
+  };
+}
+
+bvalue('a')({ a: 'hi', b: 'hello' }); // hi
+```
+
+`bvalue` 함수를 실행할 때 넘겨준 인자 `key`를 나중에 `obj`를 받을 익명 함수가 기억한다.
+
+`bvalue` 함수의 실행 결과는 `key`를 기억하는 함수이고 객체를 인자로 넘길 수 있다.
+
+`bvalue` 함수에서 반환된 함수는 `obj`를 받아 앞에서 받아 두었던 `key`로 `value` 값을 리턴한다.
+
+- 코드 1-14 `bvalue`로 `map`의 `iteratee` 만들기
+
+```javascript
+console.log(
+  log_length(
+    map(
+      filter(users, function (user) {
+        return user.age < 30;
+      }),
+      bvalue('age')
+    )
+  )
+);
+// 4
+// [25, 28, 27, 24]
+```
+
+`map`이 사용할 `iteratee` 함수를 `bvalue`가 반환한 함수로 대체되었으며 익명 함수 선언이 사라져 코드가 더욱 짧아졌다.
+
+## 1.3 함수형 자바스크립트의 실용성 2
