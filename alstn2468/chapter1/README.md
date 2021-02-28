@@ -185,7 +185,7 @@ console.log(names); // ["ID", "BJ", "JM"]
 function filter(list, predicate) {
   var new_list = [];
   for (var i = 0, len = list.length; i < len; i++) {
-    if (predicate[list[i]]) new_list.push(list[i]);
+    if (predicate(list[i])) new_list.push(list[i]);
   }
   return new_list;
 }
@@ -201,7 +201,7 @@ function filter(list, predicate) {
 
 `filter` 함수는 **이전 값의 상태를 변경하지 않고 새로운 값을 만들어 반환**하게 되는데 이는 함수형 프로그래밍에서 매우 중요하다.
 
-- 코드 1-7 `filter` 사용
+- <span id="code-1-7">코드 1-7</span> `filter` 사용
 
 ```javascript
 var users_under_30 = filter(users, function (user) {
@@ -264,3 +264,127 @@ filter(users, function (user) {
 <sub id="2020-02-25"><sup>-- 2020-02-25 --</sup></sub>
 
 ### 1.2.4 map 함수
+
+리팩토링의 핵심은 **중복을 제거하고 의도를 드러내는 것**이다.
+
+[코드 1-5](#code-1-7)에서 회원 목록을 통해 나이와 이름을 추출하는데 두 코드에도 중복이 존재한다.
+
+두 코드 모두 for문에서 원본 배열과 1:1로 매핑되는 다른 값을 만들어 담고 있다.
+
+기존 코드를 활용해 `map`이라는 함수를 만들어볼 수 있다.
+
+- 코드 1-8 `map`
+
+```javascript
+function map(list, iteratee) {
+  var new_list = [];
+  for (var i = 0, len = list.length; i < len; i++) {
+    new_list.push(iteratee(list[i]));
+  }
+  return new_list;
+}
+```
+
+`map` 함수는 `new_list`에 무엇을 `push`할지에 대해 `iteratee` 함수에 위임했다.
+
+- 코드 1-9 `map` 사용
+
+```javascript
+var users_under_30 = filter(users, function (user) {
+  return user.age < 30;
+});
+console.log(under_user_30.length); // 4
+var ages = map(under_user_30, function (user) {
+  return user.age;
+});
+console.log(ages); // [25, 28, 27, 24]
+var users_over_30 = filter(users, function (user) {
+  return user.age >= 30;
+});
+console.log(users_over_30); // 3
+var names = map(users_over_30, function (user) {
+  return user.name;
+});
+console.log(names); // ["ID", "BJ", "JM"]
+```
+
+코드가 굉장히 단순해지고 for문도 없고 if문도 없다.
+
+### 1.2.5 실행 결과로 바로 실행하기
+
+함수의 리턴값을 바로 다른 함수의 인자로 사용하면 변수의 할당을 줄일 수 있다.
+
+`filter` 함수의 결과가 배열이므로 `map`의 첫 번째 인자로 바로 사용 가능하다.
+
+- 코드 1-10 함수 중첩
+
+```javascript
+var ages = map(
+  filter(users, function (user) {
+    return user.age < 30;
+  }),
+  function (user) {
+    return user.age;
+  }
+);
+console.log(ages.length); // 4
+console.log(ages); // [25, 28, 27, 24]
+
+var names = map(
+  filter(users, function (user) {
+    return user.age >= 30;
+  }),
+  function (user) {
+    return user.name;
+  }
+);
+console.log(names.length); // 3
+console.log(names); // ["ID", "BJ", "JM"]
+```
+
+아래와 같이 작은 함수를 하나 더 만들면 변수 할당을 모두 없앨 수 있다.
+
+- 코드 1-11 함수 중첩 2
+
+```javascript
+function log_length(value) {
+  console.log(value.length);
+  return value;
+}
+
+console.log(
+  log_length(
+    map(
+      filter(users, function (user) {
+        return user.age < 30;
+      }),
+      function (user) {
+        return user.age;
+      }
+    )
+  )
+);
+// 4
+// [25, 28, 27, 24]
+
+console.log(
+  log_length(
+    map(
+      filter(users, function (user) {
+        return user.age >= 30;
+      }),
+      function (user) {
+        return user.name;
+      }
+    )
+  )
+);
+// 3
+// ["ID", "BJ", "JM"]
+```
+
+`filter` 함수는 `predicate` 함수를 통해 값을 필터링해 `map` 함수에 전달하고 `map`은 전달받은 `iteratee`를 통해 새로운 값을 만들어 `log_length` 함수에 전달한다.
+
+`log_length`는 길이를 출력한 후 받은 인자를 그대로 `console.log`에 전달하고 받은 값을 출력한다.
+
+<sub id="2020-02-28"><sup>-- 2020-02-28 --</sup></sub>
