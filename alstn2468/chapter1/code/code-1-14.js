@@ -1,6 +1,7 @@
 const filter = require('./common/filter');
 const map = require('./common/map');
 const log_length = require('./common/log_length');
+const bvalue = require('./common/bvalue');
 const users = require('./common/users');
 
 console.log(
@@ -9,9 +10,7 @@ console.log(
       filter(users, function (user) {
         return user.age < 30;
       }),
-      function (user) {
-        return user.age;
-      }
+      bvalue('age')
     )
   )
 );
@@ -24,9 +23,7 @@ console.log(
       filter(users, function (user) {
         return user.age >= 30;
       }),
-      function (user) {
-        return user.name;
-      }
+      bvalue('name')
     )
   )
 );
