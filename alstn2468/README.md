@@ -7,9 +7,9 @@
 <h3>Minsu Kim</h3>
 <p>Software Engineer @Devsisters Corp</p>
 
-![Study Status: Started](https://img.shields.io/badge/Study%20Status-Started-blue.svg) ![Study Status: Started](https://img.shields.io/badge/Start%20Date-2021--02--24-23d16b.svg) ![Top Language Badge](https://img.shields.io/github/languages/top/yesmad-coder/functional-programming-study)
+![Study Status: Started](https://img.shields.io/badge/Study%20Status-Started-blue.svg) ![Study Status: Started](https://img.shields.io/badge/Start%20Date-2021--02--24-23d16b.svg) ![Top Language Badge](https://img.shields.io/github/languages/top/yesmad-coders/functional-programming-study)
 
-![Github Star Badge](https://img.shields.io/github/stars/yesmad-coder/functional-programming-study?style=social) ![Github Fork Badge](https://img.shields.io/github/forks/yesmad-coder/functional-programming-study?style=social) ![Github Watcher Badge](https://img.shields.io/github/watchers/yesmad-coder/functional-programming-study?style=social)
+![Github Star Badge](https://img.shields.io/github/stars/yesmad-coders/functional-programming-study?style=social) ![Github Fork Badge](https://img.shields.io/github/forks/yesmad-coders/functional-programming-study?style=social) ![Github Watcher Badge](https://img.shields.io/github/watchers/yesmad-coders/functional-programming-study?style=social)
 
 </div>
 
