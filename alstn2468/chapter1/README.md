@@ -557,7 +557,105 @@ console.log(findBy('age', users, 28)); // { id: 4, name: "PJ", age: 28 }
 - 코드 1-22 `findBy`로 안 되는 경우
 
 ```javascript
+function User(id, name, age) {
+  this.getId = function () {
+    return id;
+  };
+  this.getName = function () {
+    return name;
+  };
+  this.getAge = function () {
+    return age;
+  };
+}
 
+var users = [
+  new User(1, 'ID', 32),
+  new User(2, 'HA', 25),
+  new User(3, 'BJ', 32),
+  new User(4, 'PJ', 28),
+  new User(5, 'JE', 27),
+  new User(6, 'JM', 32),
+  new User(7, 'HI', 24),
+];
+
+console.log(findBy('age', users, 25)); // undefined
 ```
+
+위의 코드를 보면 `user`의 나이를 `getAge` 메서드를 이용해 얻어야 하기 때문에 `findBy` 함수로 위 상황을 대응할 수 없다.
+
+### 1.3.2 값에서 함수로
+
+앞에서 만들었던 `filter`나 `map`처럼, 인자로 키와 값 대신 함수를 사용해 모든 상황에 대응 가능한 `find` 함수를 만들 수 있다.
+
+```javascript
+function find(list, predicate) {
+  for (var i = 0, len = list.length; i < len; i++) {
+    if (predicate(list[i])) return list[i];
+  }
+}
+
+console.log(
+  find(users2, function (u) {
+    return u.getAge() == 25;
+  }).getName()
+); // HA
+console.log(
+  find(users, function (u) {
+    return u.name.indexOf('P') != -1;
+  })
+); // { id: 4, name: "PJ", age: 28 }
+console.log(
+  find(users, function (u) {
+    return u.age == 32 && u.name == 'JM';
+  })
+); // { id: 6, name: "JM" age: 32 }
+console.log(
+  find(users2, function (u) {
+    return u.getAge() < 30;
+  }).getName()
+); // HA
+```
+
+`find` 함수의 인자로 `key`와 `val` 대신 `predicate` 함수 하나를 전달 받았다.
+
+값 대신 함수를 받은 덕분에 `if` 안쪽에서 할 수 있는 일이 많아졌다.
+
+인자를 문자열이나 숫자 대신 함수로 변경한 작은 차이가 매우 큰 차이를 만들었다.
+
+`find` 함수는 이제 배열에 어떤 값이 들어 있든 사용할 수 있게 되었다.
+
+함수형 자바스크립트는 이처럼 다형성이 높은 기법을 많이 사용하며 굉장히 실용적이다.
+
+`find` 함수는 전달받은 데이터와 데이터의 특성에 맞는 `predicate`라는 보조 함수도 함께 전달 받는다.
+
+들어온 데이터의 특성은 보조 함수가 대응하므로 `find` 함수는 데이터의 특성에서 완전히 분리될 수 있다.
+
+- 코드 1-24 다형성
+
+```javascript
+console.log(
+  map(
+    filter(users, function (u) {
+      return u.age >= 30;
+    }),
+    function (u) {
+      return u.name;
+    }
+  )
+); // ["ID", "BJ", "JM"]
+console.log(
+  map(
+    filter(users2, function (u) {
+      return u.getAge() > 30;
+    }),
+    function (u) {
+      return u.getName();
+    }
+  )
+); // ["ID", "BJ", "JM"]
+```
+
+이와 같이 **함수형 프로그래밍은 보조 함수를 통해 위임하는 방식을 취해 높은 다형성과 안정성을 보장**한다.
 
 <sub id="2021-03-01"><sup>-- 2021-03-01 --</sup></sub>
