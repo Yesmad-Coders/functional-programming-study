@@ -1,29 +1,12 @@
 // 코드 1-12 filter, map
-function filter(list, predicate) {
-  var newList = [];
-  for (var i = 0, len = list.length; i < len; i++) {
-    if (predicate(list[i])) newList.push(list[i]);
-  }
-  return newList;
-}
+const FUNCTIONAL = require("./functional.module.js");
 
-function map(list, iteratee) {
-  var newList = [];
-  for (var i = 0, len = list.length; i < len; i++) {
-    newList.push(iteratee(list[i]));
-  }
-  return newList;
-}
-
-function logLength(value) {
-  console.log(value.length);
-  return value;
-}
+var users = FUNCTIONAL.users;
 
 console.log(
-  logLength(
-    map(
-      filter(users, function (user) {
+  FUNCTIONAL.logLength(
+    FUNCTIONAL.map(
+      FUNCTIONAL.filter(users, function (user) {
         return user.age < 30;
       }),
       function (user) {
@@ -34,9 +17,9 @@ console.log(
 );
 
 console.log(
-  logLength(
-    map(
-      filter(user, function (user) {
+  FUNCTIONAL.logLength(
+    FUNCTIONAL.map(
+      FUNCTIONAL.filter(users, function (user) {
         return user.age >= 30;
       }),
       function (user) {

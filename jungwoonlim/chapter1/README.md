@@ -529,4 +529,337 @@ function bvalue(key) {
 }
 ```
 
-<sub id="2020-03-01"><sup>-- 2020-03-01 --</sup></sub>
+## 1.3 함수형 자바스크립트의 실용성 2
+
+### 1.3.1 회원 목록 중 한 명 찾기
+
+회원 목록 중 특정 조건을 가진 회원 한 명을 찾고 싶다.
+
+코드 1-16 filter로 한 명 찾기
+
+```jsx
+var users = [
+	{ id: 1, name: "ID", age: 32 },
+	{ id: 2, name: "HA", age: 25 },
+	{ id: 3, name: "BJ", age: 32 },
+	{ id: 4, name: "PJ", age: 28 },
+	{ id: 5, name: "JE", age: 27 },
+	{ id: 6, name: "JM", age: 32 },
+	{ id: 7, name: "HI", age: 24 },
+];
+
+console.log(filter(users, function(user) { return user.id == 3 })[0]);
+// { id: 3, name: "BJ", age: 32 }
+```
+
+filter를 통해 걸러낸 후 [0]으로 user를 얻어냈고 원하는 결과가 나왔다.
+
+하지만 list.length 만큼 predicate가 실행되기에 효율적이지 못하고, 동일 조건에 값이 두 개 이상이라면 두 개 이상의 값을 찾는다.
+
+코드 1-17 break
+
+```jsx
+var user;
+for(var i = 0, len = users.length; i < len; i++){
+	if(users[i].id === 3) {
+		user = users[i];
+		break;
+	}
+}
+console.log(user); // { id: 3, name: "BJ", age: 32 }
+```
+
+오히려 위 코드가 더 효율적일 것이다.
+
+원하는 user를 찾은 후 break로 for문을 빠져나왔다. 
+
+하지만 위 코드는 재사용이 불가능하다.
+
+코드 1-18 findById
+
+```jsx
+function findById(list, id) {
+	for(var i = 0, len = list.length; i < len; i++){
+		if(list[i].id === id) return list[i];
+	}
+}
+console.log(findById(users, 3)); // { id: 3, name: "BJ", age: 32 }
+console.log(findById(users, 5)); // { id: 5, name: "JE", age: 27 }
+```
+
+재사용이 가능하도록 구현되었다.
+
+findById는 list와 id를 받아 루프를 돌다가 id가 동일한 객체를 만나면 그 값을 리턴한다. 못찾는다면 undefinded가 리턴된다.
+
+코드 1-19 findByName
+
+```jsx
+function findByName(list, name) {
+	for(var i = 0, len = list.length; i < len; i++){
+		if(list[i].name === name) return list[i];
+	}
+}
+console.log(findByName(users, "BJ") ); // { id: 3, name: "BJ", age: 32 }
+console.log(findByName(users, "JE") ); // { id: 5, name: "JE", age: 27 }
+```
+
+이름으로 찾는 함수다.
+
+코드 1-20 findByAge
+
+```jsx
+function findByAge(list, age) {
+	for(var i = 0, len = list.length; i < len; i++){
+		if(list[i].age === age) return list[i];
+	}
+}
+console.log(findByAge(users, 28) ); // { id: 3, name: "BJ", age: 32 }
+console.log(findByAge(users, 25) ); // { id: 5, name: "JE", age: 27 }
+```
+
+나이로 찾는 함수다.
+
+위와 같은 방식은 그동안 많이 사용해 온 방식이다.
+
+for와 if 등의 로직이 숨겨졌고 깔끔해졌지만 아직 아쉬움이 있다. 중복이 있기 때문이다.
+
+이 함수들은 함수형적이지 않다.
+
+코드 1-21 findById
+
+```jsx
+function findBy(key, list, val) {
+	for(var i = 0, len = list.length; i < len; i++){
+		if(list[i][key] === val) return list[i];
+	}
+}
+
+console.log(findBy('name', users, 'BJ')); // { id: 3, name: "BJ", age: 32 }
+console.log(findBy('id', users, 2)); // { id: 2, name: "HA", age: 25 }
+console.log(findBy('age', users, 28)); // { id: 4, name: "PJ", age: 28 }
+```
+
+인자를 하나 더 늘려서 중복을 제거했다.
+
+코드의 길이도 1/3으로 줄어들었다. 아니 정확히 말하면 앞으로의 코드도 줄였다.
+
+findBy 함수는 users, posts, comments, products 등 key로 value를 얻을 수 있는 객체들을 가진 배열이라면 무엇이든 받을 수 있다. 객체의 key 값이 무엇이든지간에 찾아줄 수 있으므로 훨씬 많은 경우를 대응할 수 있는 함수가 되었다.
+
+좋아지긴 했지만 아직 다음과 같은 상황을 지원하지 못하는 아쉬움이 있다.
+
+- key가 아닌 메서드를 통해 값을 얻어야 할 때
+- 두 가지 이상의 조건이 필요할 때
+- ===이 아닌 다른 조건으로 찾고자 할 때
+
+다음 예제는 user 객체가 메서드로 값을 얻어야 하는 객체일 경우에 발생하는 난감한 상황을 보여준다.
+
+코드 1-22 findBy로 안 되는 경우
+
+```jsx
+function User(id, name, age) {
+	this.getId = function() {
+		return id;
+	};
+	this.getName = function() {
+		return name;
+	}
+	this.getAge = function() {
+		return age;
+	}
+}
+
+var user2 = [
+	new User(1, "ID", 32),
+	new User(2, "HA", 25),
+	new User(3, "BJ", 32),
+	new User(4, "PJ", 28),
+	new User(5, "JE", 27),
+	new User(6, "JM", 32),
+	new User(7, "HI", 24),
+];
+
+function findBy(key, list, val) {
+	for(var i = 0, len = list.length; i < len; i++){
+		if(list[i][key] === val) return list[i];
+	}
+}
+
+console.log(findBy('age',user2,25)); // undefined
+```
+
+코드 1-22를 보면 user의 나이를 .getAge()로 얻어내야 하기 때문에 findBy 함수로는 위 상황을 대응할 수 없음을 알 수 있다. 이름에 'P'가 포함된 user를 찾고 싶다거나 나이가 32이면서 이름이 'JM'인 user를 찾고 싶다거나 하는 것도 불가능하다. 나이가 30세 미만인 사람을 찾는 것도 findBy로는 할 수 없다. 이번엔 보다 함수적인 프로그래밍을 해 보자.
+
+### 1.3.2 값에서 함수로
+
+앞서 만들었던 filter나 map 처럼, **인자로 키와 값 대신 함수를 사용해보자.**
+
+코드 1-23 find
+
+```jsx
+function find(list, predicate) {
+	for(var i = 0, len = list.length; i < len; i++){
+		if(predicate(list[i])) return list[i];
+	}
+}
+
+console.log( find(user2, function(u) { return u.getAge() == 25; }).getName() );
+// HA
+console.log( find(users, function(u) { return u.name.indexOf('P') !== -1; } ));
+// { id: 4, name: "PJ", age: 28 }
+console.log( find(users, function(u) { return u.age === 32 && u.name == "JM"; } ));
+// { id: 6, name: "JM", age: 32 }
+console.log( find(users2, function(u) { return u.getAge() < 30; }).getName() );
+// HA
+```
+
+find의 인자로 값(key와 val) 대신 함수(predicate)를 받았다. 덕분에 if 안쪽에서 할 수 있는 일이 정말 많아졌다.
+
+getAge 같은 메서드 실행을 통해 값을 비교하기도, indexOf 같은 메서드를 통해 이름에 'P'가 포함되었는지를 알아내기도 했다. 두 가지 조건을 모두 만족하는지를 보기도 했다. 연산자 역시 마음대로 사용 가능하다.
+
+함수형 자바스크립트는 다형성이 높은 기법을 많이 사용하며 이러한 기법은 정말 실용적이다.
+
+- 다형성 : 여러 가지 형태를 가질 수 있는 능력
+
+객체지향 프로그래밍이 약속된 이름의 메서드를 대신 실행해주는 식으로 외부 객체에게 위임을 한다면
+
+**함수형 프로그래밍은 보조 함수를 통해 완전히 위임하는 방식을 취한다.**
+
+이는 더 높은 다형성과 안정성을 보장한다.
+
+다음은 각 데이터에 맞는 보조 함수로 대응하는 사례이다.
+
+코드 1-24 다형성
+
+```jsx
+// 코드 1-16에서 선언한 users
+console.log(
+	map(
+		filter(users, function(u) { return u.age >= 30 }),
+		function(u) { return u.name ; }));
+// ["ID", "BJ", "JM"];
+
+// 코드 1-22에서 선언한 users2로 교체
+console.log(map(
+	filter(user2, function(u) { return u.getAge() > 30 }), // 메서드 실행으로 변경
+	function(u) { return u.getName(); })); // 메서드 실행으로 변경
+// ["ID", "BJ", "JM"];
+```
+
+### 1.3.3 함수를 만드는 함수와 find, filter 조합하기
+
+함수로 함수를 만들어 find 함수와 함께 사용하면 코드를 더욱 간결하게 만들 수 있다.
+
+코드 1-25 bmatch1로 predicate 만들기
+
+```jsx
+function bmatch1(key, val) {
+	return function(obj) {
+		return obj[key] === val;
+	}
+}
+
+console.log(find(users, bmatch1('id', 1)) ); // { id: 1, name: "ID", age: 32 }
+console.log(find(users, bmatch1('name', 'HI')) ); // { id: 7, name: "HI", age: 24 }
+console.log(find(users, bmatch1('age', 27)) ); // { id: 5, name: "JE", age: 27 }
+```
+
+bmatch1의 실행 결과는 함수다.
+
+key와 val을 미리 받아서 나중에 들어올 obj와 비교하는 익명 함수를 클로저로 만들어 리턴한다.
+
+bmatch1을 통해 id, name, age를 비교하는 predicate 3개를 만들어 find에게 넘겼다.
+
+bmatch1은 인자와 결과만으로 협업하기 때문에 여기저기 붙이기 쉽다.
+
+코드 1-26 bmatch1로 함수를 만들어 고차 함수와 협업하기
+
+```jsx
+console.log(filter(users, bmatch1('age', 32)) );
+// [{ id: 1, name: "ID", age: 32 },
+//  { id: 3, name: "BJ", age: 32 },
+//  { id: 6, name: "JM", age: 32 }]
+
+console.log(map(users, bmatch1('age', 32)) );
+// [true, false, true, false, false, true, false]
+```
+
+bmatch1은 하나의 key에 대한 value만 비교할 수 있다.
+
+코드 1-27 bmatch
+
+```jsx
+function object(key, val) {
+	var obj = {};
+	obj[key] = val;
+	return obj;
+}
+
+function match(obj, obj2) {
+	for(var key in obj2) {
+		if(obj[key] !== obj2[key]) return false;
+	}
+	return true;
+}
+
+function bmatch(obj2, val) {
+	if(arguments.length === 2) obj2 = object(obj2, val);
+	return function(obj) {
+		return match(obj, obj2);
+	}
+}
+
+console.log(match(find(users, bmatch('id', 3)), find(users, bmatch('name', 'BJ'))));
+// true
+console.log(find(users, function(u) { return u.age === 32 && u.name === 'JM' }));
+// { id: 6, name: "JM", age: 32 }
+console.log(find(users, bmatch({ name: 'JM', age: 32 })));
+// { id: 6, name: "JM", age: 32 }
+
+```
+
+이제는 ( key, val )와 ({ key: val }) 두 가지 방식으로 사용할 수 있다. 
+
+({ key: val }) 방식을 사용하면 두 가지 이상의 값이 모두 동일한지도 확인할 수 있다.
+
+처럼 작은 기능을 하는 함수로 쪼개거나 재조합하는 식으로 발전시키는 것도 좋은 방법이다.
+
+코드 1-28 findIndex
+
+```jsx
+function findIndex(list, predicate) {
+	for(var i = 0, len = list.length; i < len; i++){
+		if(predicate(list[i])) return i;
+	}
+	return -1;
+}
+
+console.log(findIndex(users, bmatch({name: 'JM', age: 32}))); // 5
+console.log(findIndex(users, bmatch({age: 36}))); // -1
+```
+
+find → findIndex
+
+Array.prototype.indexOf 보다 활용도가 훨씬 높은 findIndex.
+
+- indexOf() 메서드는 배열에서 지정된 요소를 찾을 수 있는 첫 번째 인덱스를 반환하고 존재하지 않으면 -1을 반환합니다.
+
+    Array.prototype.indexOf()
+
+    ```jsx
+    // MDN Web Docs
+    const beasts = ['ant', 'bison', 'camel', 'duck', 'bison'];
+
+    console.log(beasts.indexOf('bison'));
+    // expected output: 1
+
+    // start from index 2
+    console.log(beasts.indexOf('bison', 2));
+    // expected output: 4
+
+    console.log(beasts.indexOf('giraffe'));
+    // expected output: -1
+    ```
+
+- 문자열은 String.prototype.indexOf()
+
+<sub id="2020-03-02"><sup>-- 2020-03-02 --</sup></sub>

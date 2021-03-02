@@ -1,6 +1,10 @@
 // 코드 1-10 함수 중첩
-var ages = map(
-  filter(users, function (user) {
+const FUNCTIONAL = require("./functional.module.js");
+
+var users = FUNCTIONAL.users;
+
+var ages = FUNCTIONAL.map(
+  FUNCTIONAL.filter(users, function (user) {
     return user.age < 30;
   }),
   function (user) {
@@ -11,8 +15,8 @@ var ages = map(
 console.log(ages.length); // 4
 console.log(ages); // [25, 28, 27, 24]
 
-var names = map(
-  filter(users, function (user) {
+var names = FUNCTIONAL.map(
+  FUNCTIONAL.filter(users, function (user) {
     return user.age >= 30;
   }),
   function (user) {
