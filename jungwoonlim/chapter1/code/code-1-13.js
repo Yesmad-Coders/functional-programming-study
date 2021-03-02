@@ -1,14 +1,6 @@
 // 코드 1-13 함수를 리턴하는 함수 bvalue
-function addMaker(a) {
-  return function (b) {
-    return a + b;
-  };
-}
+const FUNCTIONAL = require("./functional.module.js");
 
-function bvalue(key) {
-  return function (obj) {
-    return obj[key];
-  };
-}
+var output = FUNCTIONAL.bvalue("a")({ a: "hi", b: "hello" }); // hi
 
-bvalue("a")({ a: "hi", b: "hello" }); // hi
+console.log(output);
