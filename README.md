@@ -26,6 +26,7 @@
 |   최수현   | - | [sheony-1124](https://github.com/sheony-1124) | [함수형 자바스크립트 프로그래밍 - 유인동](https://book.naver.com/bookdb/book_detail.nhn?bid=12800140) | [:link:](sheony-1124/README.md) |
 |   성현제 Stevy   | x몬 | [hyunjaesung](https://github.com/hyunjaesung) | [함수형 자바스크립트 프로그래밍 입문 2/e - 안토 아라빈스/ 스리칸스 마치라주 ](http://book.interpark.com/product/BookDisplay.do?_method=detail&sc.prdNo=329988249) | [:link:](stevy/README.md) |
 |   채혜민   | - | [dkssyddico](https://github.com/dkssyddico) | [함수형 자바스크립트 프로그래밍 - 유인동](https://book.naver.com/bookdb/book_detail.nhn?bid=12800140) | [:link:](dkssyddico/README.md) |
+|   김우리   | Diva corp | [woori3104](https://github.com/woori3104) | [함수형 자바스크립트 프로그래밍 - 유인동](https://book.naver.com/bookdb/book_detail.nhn?bid=12800140) | [:link:](woori3104/README.md) |
 
 
 <div align="center">
