@@ -1,3 +1,21 @@
+function not(v) {
+  return !v;
+}
+
+function beq(a) {
+  return function (b) {
+    return a === b;
+  };
+}
+
+function positive(list) {
+  return _.find(list, _.identity);
+}
+
+function negativeIndex(list) {
+  return _.findIndex(list, not);
+}
+
 var _ = {};
 _.map = function (list, iteratee) {
   var new_list = [];
@@ -24,5 +42,20 @@ _.findIndex = function (list, predicate) {
   }
   return -1;
 };
+_.identity = function (v) {
+  return v;
+};
+_.compose = function () {
+  var args = arguments;
+  var start = args.length - 1;
+  return function () {
+    var i = start;
+    var result = args[start].apply(this, arguments);
+    while (i--) result = args[i].call(this, result);
+    return result;
+  };
+};
+_.some = _.compose(not, not, positive);
+_.every = _.compose(beq(-1), negativeIndex);
 
 module.exports = _;

@@ -446,14 +446,11 @@ console.log(
 - 코드 1-16 `filter`로 한 명 찾기
 
 ```javascript
-const filter = require('./common/filter');
-const users = require('./common/users');
-
 console.log(
   filter(users, function (user) {
     return user.id === 3;
-  })
-)[0]; // { id: 3, name: "BJ", age: 32 }
+  })[0]
+); // { id: 3, name: "BJ", age: 32 }
 ```
 
 `filter` 함수를 통해 걸래낸 후 `[0]`으로 `user`를 얻었고 원하는 결과가 나오긴 했다.
@@ -619,7 +616,7 @@ console.log(
 
 `find` 함수의 인자로 `key`와 `val` 대신 `predicate` 함수 하나를 전달 받았다.
 
-값 대신 함수를 받은 덕분에 `if` 안쪽에서 할 수 있는 일이 많아졌다.
+값 대신 함수를 받은 덕분에 if 안쪽에서 할 수 있는 일이 많아졌다.
 
 인자를 문자열이나 숫자 대신 함수로 변경한 작은 차이가 매우 큰 차이를 만들었다.
 
@@ -813,3 +810,173 @@ console.log(
 `_.filter` 함수의 `predicate` 함수에 두 번쨰 인자로 `i`가 넘어와 위와 같은 함수 조합도 가능해졌다.
 
 <sub id="2021-03-02"><sup>-- 2021-03-02 --</sup></sub>
+
+### 1.3.5 function identity(v) { return v; } 이건 어디다 쓰는거지?
+
+아래의 `identity` 함수는 Underscore.js에 있는 함수다.
+
+- 코드 1-31 `_.identity`
+
+```javascript
+_.identity = function (v) {
+  return v;
+};
+var a = 10;
+console.log(_.identity(a)); // 10
+```
+
+함수를 정희하고 실행하였더니 받은 인자를 그대로 반환하는 함수다.
+
+`_.idnetity` 함수는 아래와 같은 경우에 사용할 수 있다.
+
+- 코드 1-32 `predicate`로 `_.identity`를 사용한 경우
+
+```javascript
+console.log(_.filter([true, 0, 10, 'a', false, null], _.identity));
+// [true, 10, 'a']
+```
+
+`_.filter`를 `_.identity`와 함께 사용했더니 참으로 판단되는 값들만 남았다.
+
+> `false`, `undefined`, `null`, `0`, `NaN`, `""`은 모두 거짓으로 판단되는 값이다.
+
+`_.identity`와 다른 고차함수를 조합하면 여러 유용한 함수를 만들 수 있다.
+
+- <span id="code-1-33">코드 1-33</span> `some`, `every` 만들기 1
+
+```javascript
+_.some = function (list) {
+  return !!_.find(list, _.identity);
+};
+_.every = function (list) {
+  return _.filter(list, _.identity).length == list.length;
+};
+console.log(_.some([0, null, 2])); // true
+console.log(_.some([0, null, false])); // false
+
+console.log(_.every([0, null, 2])); // false
+console.log(_.every([{}, true, 2])); // true
+```
+
+`_.some` 함수는 배열에 들어있는 값 중 하나라도 참 값이면 `true`를 하나도 없다면 `false`를 반환하며 `_.every` 함수는 모두 참 값이면 `true`를 반환한다.
+
+### 1.3.6 연산자 대신 함수로
+
+[코드 1-33](#code-1-33)의 `_.every` 함수는 `filter`를 사용했기 때문에 항상 반복문을 끝까지 돌게된다.
+
+아래와 같이 함수를 두 개를 더 만들면 로직을 개선할 수 있다.
+
+- 코드 1-34 아주 작은 함수 `not`, `beq`
+
+```javascript
+function not(v) { return !v; }
+function beq(a) {
+  return function(b) {
+    return a === b;
+  }
+}
+```
+
+`!`과 `===` 연산자를 이용해도 되지만 `not`, `beq` 함수로 연산자를 대신 작성했다.
+
+- 코드 1-35 `some`, `every` 만들기 2
+
+```javascript
+_.some = function (list) {
+  return !!_.find(list, _.identity);
+};
+_.every = function (list) {
+  return beq(-1)(_.findIndex(list, not));
+};
+console.log(_.some([0, null, 2])); // true
+console.log(_.some([0, null, false])); // false
+
+console.log(_.every([0, null, 2])); // false
+console.log(_.every([{}, true, 2])); // true
+```
+
+`not` 함수는 연산자가 아닌 함수이기 때문에 `_.findIndex` 함수와 함께 사용할 수 있다.
+
+개선된 `_.every` 함수는 중간에 거짓 값을 한 번이라도 만나면 루프가 중단되고 부정적인 값이 없다면 `-1`을 반환한다.
+
+`-1`이 나왔다면 `beq(-1)`이 반환한 함수에 인자로 넘어가 `true`가 나오게 된다.
+
+`_.findIndex` 함수로 거짓 값을 하나도 찾지 못했다는 얘기는 모두 참 값만 존재하는 것이다.
+
+- 코드 1-36 함수 쪼개기
+
+```javascript
+function positive(list) {
+  return _.find(list, _.identity);
+}
+function negativeIndex(list) {
+  return _.findIndex(list, not);
+}
+_.some = function (list) {
+  return not(not(positive(list)));
+};
+_.every = function (list) {
+  return beq(-1)(negativeIndex(list));
+};
+console.log(_.some([0, null, 2])); // true
+console.log(_.some([0, null, false])); // false
+
+console.log(_.every([0, null, 2])); // false
+console.log(_.every([{}, true, 2])); // true
+```
+
+함수가 하나의 일만 할 수 있도록 아래와 같이 함수를 조금 더 쪼갤 수 있다.
+
+함수를 쪼개면서 `positive`와 `negativeIndex`라는 재사용 가능한 함수도 얻을 수 있다.
+
+### 1.3.7 함수 함성
+
+함수를 쪼갤수록 함수의 합성은 더 쉬워지며 Underscore.js에서는 `_.compose` 함수를 이용해 함수를 합성한다.
+
+`_.compose` 함수는 오른쪽 함수의 결과를 왼쪽 함수에게 전달하는 방식의 고차 함수다.
+
+- 코드 1-37 `_.compose`
+
+```javascript
+_.compose = function () {
+  var args = arguments;
+  var start = args.length - 1;
+  return function () {
+    var i = start;
+    var result = args[start].apply(this, arguments);
+    while (i--) result = args[i].call(this, result);
+    return result;
+  };
+};
+var greet = function (name) {
+  return 'hi: ' + name;
+};
+var exclaim = function (statement) {
+  return statement.toUpperCase() + '!';
+};
+var welcome = _.compose(greet, exclaim);
+console.log(welcome('moe')); // hi: MOE!
+```
+
+`welcome` 함수를 실행하면 먼저 `exclaim` 함수를 실행하며 `"moe"`를 인자로 넘겨준다.
+
+`exclaim`의 결과는 대문자로 변환된 `"MOE"`가 되고 그 결과는 `greet`의 인자로 넘어가 최종적으로 `"hi: MOE!"`가 반환되게 된다.
+
+`_.compose` 함수를 이용해 `_.some`, `_.every` 함수를 만들 수 있다.
+
+- 코드 1-38 `_.compose`로 함수 합성하기
+
+```javascript
+_.some = _.compose(not, not, positive);
+_.every = _.compose(beq(-1), negativeIndex);
+```
+
+`_.compose` 함수를 이용해 `_.some`과 `_.every` 함수를 더 간결하게 포현할 수 있어졌다.
+
+**값 대신 함수**로, **for와 if 대신 고차 함수와 보조 함수**로, 연**산자 대신 함수**로, **함수 합성** 등 함수적 기법을 사용하면 코드도 간결해지고 로직을 명확하게 전달할 수 있게 된다.
+
+또한 인자 선언이나 변수 선언이 적어 유지보수 하기 쉬우며 테스트 또한 작성하기 쉬워지게 된다.
+
+작게 쪼개다 보면 쓸모 없어 보이는 함수가 많이 나오기도 하지만 작은 단위로 쪼개 다 보면 재사용성이 높고 재밌는 코드들이 나오게 될 것이다.
+
+<sub id="2021-03-03"><sup>-- 2021-03-03 --</sup></sub>
