@@ -45,11 +45,17 @@ _.findIndex = function (list, predicate) {
 _.identity = function (v) {
   return v;
 };
-_.some = function (list) {
-  return not(not(positive(list)));
+_.compose = function () {
+  var args = arguments;
+  var start = args.length - 1;
+  return function () {
+    var i = start;
+    var result = args[start].apply(this, arguments);
+    while (i--) result = args[i].call(this, result);
+    return result;
+  };
 };
-_.every = function (list) {
-  return beq(-1)(negativeIndex(list));
-};
+_.some = _.compose(not, not, positive);
+_.every = _.compose(beq(-1), negativeIndex);
 
 module.exports = _;

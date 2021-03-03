@@ -619,7 +619,7 @@ console.log(
 
 `find` 함수의 인자로 `key`와 `val` 대신 `predicate` 함수 하나를 전달 받았다.
 
-값 대신 함수를 받은 덕분에 `if` 안쪽에서 할 수 있는 일이 많아졌다.
+값 대신 함수를 받은 덕분에 if 안쪽에서 할 수 있는 일이 많아졌다.
 
 인자를 문자열이나 숫자 대신 함수로 변경한 작은 차이가 매우 큰 차이를 만들었다.
 
@@ -933,5 +933,53 @@ console.log(_.every([{}, true, 2])); // true
 함수를 쪼개면서 `positive`와 `negativeIndex`라는 재사용 가능한 함수도 얻을 수 있다.
 
 ### 1.3.7 함수 함성
+
+함수를 쪼갤수록 함수의 합성은 더 쉬워지며 Underscore.js에서는 `_.compose` 함수를 이용해 함수를 합성한다.
+
+`_.compose` 함수는 오른쪽 함수의 결과를 왼쪽 함수에게 전달하는 방식의 고차 함수다.
+
+- 코드 1-37 `_.compose`
+
+```javascript
+_.compose = function () {
+  var args = arguments;
+  var start = args.length - 1;
+  return function () {
+    var i = start;
+    var result = args[start].apply(this, arguments);
+    while (i--) result = args[i].call(this, result);
+    return result;
+  };
+};
+var greet = function (name) {
+  return 'hi: ' + name;
+};
+var exclaim = function (statement) {
+  return statement.toUpperCase() + '!';
+};
+var welcome = _.compose(greet, exclaim);
+console.log(welcome('moe')); // hi: MOE!
+```
+
+`welcome` 함수를 실행하면 먼저 `exclaim` 함수를 실행하며 `"moe"`를 인자로 넘겨준다.
+
+`exclaim`의 결과는 대문자로 변환된 `"MOE"`가 되고 그 결과는 `greet`의 인자로 넘어가 최종적으로 `"hi: MOE!"`가 반환되게 된다.
+
+`_.compose` 함수를 이용해 `_.some`, `_.every` 함수를 만들 수 있다.
+
+- 코드 1-38 `_.compose`로 함수 합성하기
+
+```javascript
+_.some = _.compose(not, not, positive);
+_.every = _.compose(beq(-1), negativeIndex);
+```
+
+`_.compose` 함수를 이용해 `_.some`과 `_.every` 함수를 더 간결하게 포현할 수 있어졌다.
+
+**값 대신 함수**로, **for와 if 대신 고차 함수와 보조 함수**로, 연**산자 대신 함수**로, **함수 합성** 등 함수적 기법을 사용하면 코드도 간결해지고 로직을 명확하게 전달할 수 있게 된다.
+
+또한 인자 선언이나 변수 선언이 적어 유지보수 하기 쉬우며 테스트 또한 작성하기 쉬워지게 된다.
+
+작게 쪼개다 보면 쓸모 없어 보이는 함수가 많이 나오기도 하지만 작은 단위로 쪼개 다 보면 재사용성이 높고 재밌는 코드들이 나오게 될 것이다.
 
 <sub id="2021-03-03"><sup>-- 2021-03-03 --</sup></sub>
