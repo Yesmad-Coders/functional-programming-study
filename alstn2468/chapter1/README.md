@@ -446,14 +446,11 @@ console.log(
 - 코드 1-16 `filter`로 한 명 찾기
 
 ```javascript
-const filter = require('./common/filter');
-const users = require('./common/users');
-
 console.log(
   filter(users, function (user) {
     return user.id === 3;
-  })
-)[0]; // { id: 3, name: "BJ", age: 32 }
+  })[0]
+); // { id: 3, name: "BJ", age: 32 }
 ```
 
 `filter` 함수를 통해 걸래낸 후 `[0]`으로 `user`를 얻었고 원하는 결과가 나오긴 했다.
