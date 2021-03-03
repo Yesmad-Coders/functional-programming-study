@@ -954,7 +954,7 @@ console.log(_.filter([true, 0, 10, 'a', false, null], _.identity)); // [true, 10
 
 _.filter를 _.indentity와 함께 사용했더니 Truthy Values만 남았다.
 
-_indentity는 다른 고차 함수와 조합하면 아주 유용한 함수들을 만들 수 있다.
+_.identity는 다른 고차 함수와 조합하면 아주 유용한 함수들을 만들 수 있다.
 
 - Truthy Values : Boolean으로 평가했을 때 true.
 - Falsy Values : Boolean으로 평가했을 때 false.
