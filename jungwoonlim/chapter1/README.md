@@ -862,4 +862,270 @@ Array.prototype.indexOf 보다 활용도가 훨씬 높은 findIndex.
 
 - 문자열은 String.prototype.indexOf()
 
-<sub id="2020-03-02"><sup>-- 2020-03-02 --</sup></sub>
+### 1.3.4 고차함수
+
+**고차함수란?**
+
+- 함수를 인자로 받거나 함수를 리턴하는 함수
+- 둘 다 하는 경우도 고차 함수
+
+보통 고차 함수는 인자로 받아 필요한 때에 실행하거나 클로저를 만들어 리턴한다.
+
+앞서 구현했던 map, filter, find, findIndex, bvalue, bmatch 같은 함수들은 모두 고차 함수다.
+
+위 함수들은 Underscore.js에도 있는 함수들이다. (Underscore.js는 유명한 함수형 자바스크립트 라이브러리)
+
+Underscore.js의 _.map, _.filter, _.find, _.findIndex는 iteratee와 predicate가 사용할 인자를 몇 가지 더 제공한다. 재료가 많으면 더 다양한 로직을 만들 수 있다.
+
+앞서 구현한 함수들을 Underscore.js에 가깝게 고쳐보자.
+
+코드 1-29 인자 늘리기
+
+```jsx
+_.map = function(list, iteratee) {
+	var newList = [];
+	for(var i = 0, len = list.length; i < len; i++) {
+		newList.push(iteratee(list[i], i, list));
+	}
+	return newList;
+};
+
+_.filter = function(list, predicate) {
+	var newList = [];
+	for(var i = 0, len = list.length; i < len; i++) {
+		if(predicate(list[i], i, list)) newList.push(list[i]);
+	}
+	return newList;
+};
+
+_.find = function(list, predicate) {
+	for(var i = 0, len = list.length; i < len; i++) {
+		if(predicate(list[i], i, list)) return list[i];
+	}
+}
+
+_.findIndex = function(list, predicate) {
+	for(var i = 0, len = list.length; i < len; i++) {
+		if(predicate(list[i], i, list)) return i;
+	}
+	return -1;
+}
+```
+
+원래는 한 개의 인자를 넘겼지만, 이제는 여러 개의 인자를 넘긴다.
+
+이제 iteratee와 predicate 함수가 받는 인자가 많아져 좀 더 다양한 일을 할 수 있게 되었다.
+
+코드 1-30 predicate에서 두 번째 인자 사용하기
+
+```jsx
+console.log(_.filter([1,2,3,4], function(val, idx) {
+	return idx > 1;
+})); // [3, 4]
+
+console.log(_.filter([1,2,3,4], function(val, idx) {
+	return idx % 2 == 0;
+})); // [1, 3]
+```
+
+idx는 몇 번째 인자인지를 나타내는 index이다. 즉 list[1] 초과, 짝수번째 인수를 뽑아낸 것이다.
+
+### 1.3.5 function identity(v) { return v; }, 이건 어디다 쓰는거지?
+
+정말 쓸모 없어 보이는 이상함 함수를 하나 소개한다.
+
+코드 1-31 _.identity
+
+```jsx
+_.identity = function(v) { return v; };
+var a = 10;
+console.log(_.identity(a)); // 10
+```
+
+함수를 정의하고 실행해 보았다. 받은 인자를 그냥 그대로 뱉는 함수다.
+
+이미 뭔지 알고 있는데 왜 _.identity 같은 함수가 존재하고, 이 함수를 언제 사용해야 하는 것일까?
+
+코드 1-32 predicate로 _.identity를 사용한 경우
+
+```jsx
+console.log(_.filter([true, 0, 10, 'a', false, null], _.identity)); // [true, 10, 'a']
+```
+
+_.filter를 _.identity와 함께 사용했더니 Truthy Values만 남았다.
+
+_.identity는 다른 고차 함수와 조합하면 아주 유용한 함수들을 만들 수 있다.
+
+- Truthy Values : Boolean으로 평가했을 때 true.
+- Falsy Values : Boolean으로 평가했을 때 false.
+
+    ```jsx
+    _.truthy = function(v) { return !!v; };
+    _.falsy = function(v) { return !v; };
+    ```
+
+코드 1-33 some, every 만들기 1
+
+```jsx
+_.some = function(list) {
+	return !!_.find(list, _.identity);
+};
+
+_.every = function(list) {
+	return _.filter(list, _.identity).length == list.length;
+};
+
+console.log(_.some([0, null, 2])); // true
+console.log(_.some([0, null, false])); // false
+
+console.log(_.every([0, null, 2])); // false
+console.log(_.every([{}, true, 2])); // true
+```
+
+_.some은 배열에 들어가 있는 값 중 하나라도 긍정적인 값이 있으면 true, 하나도 없다면 false를 리턴한다.
+
+_.every는 모두 긍정적인 값이면 true, 아니면 false를 리턴한다.
+
+그런데 코드 1-33의 _.every는 좀 아쉬운 점이 있다. filter를 사용했기 때문에 항상 루프를 끝까지 돌기 때문이다. 이때 쓸모없어 보이는 함수 두 개를 더 만들면 로직을 개선할 수 있다.
+
+### 1.3.6 연산자 대신 함수로
+
+코드 1-34 아주 작은 함수 not, beq
+
+```jsx
+function not(v) { return !v; }
+function beq(a) {
+	return function(b) {
+		return a === b;
+	}
+}
+```
+
+쓸모없어 보이는 두 개의 함수는 not과 beq이다.
+
+왜 굳이 not이나 beq를 쓸까? !를 쓰면 되고, ===로 비교하면 되는데 왜?
+
+코드 1-35 some, every 만들기2
+
+```jsx
+_.some = function(list) {
+	return !!_.find(list, _.identity);
+};
+
+_.every = function(list) {
+	return beq(-1)(_.findIndex(list, not));
+};
+
+console.log(_.some([0, null, 2])); // true;
+console.log(_.some([0, null, false])); // false;
+
+console.log(_.every([0, null, 2])); // false;
+console.log(_.every([{}, true, 2])); // true;
+```
+
+다시 코드를 살펴보자.
+
+not은 연산자 !가 아닌 함수이기 때문에 _.findIndex와 함께 사용할 수 있다. list의 값 중 하나라도 부정적인 값을 만나면 predicate가 not이므로 true를 리턴하여 해당 번째 i값을 리턴하게 된다. 중간에 부정적인 값을 한 번이라도 만나면 루프가 중단된다. 만일 부정적인 값이 하나도 없다면 -1을 리턴한다. -1이 나왔다면, beq(-1)이 리턴한 함수에게 인자로 넣어 true가 나올 것이고, 이것은 _.every의 리턴값이 된다. findIndex로 부정적인 값을 하나도 찾지 못했다는 얘기는 결국 모두 긍정적인 값이라는 얘기가 된다.
+
+_every는 not 함수 덕분에 로직이 개선되었다. 이제 함수를 더 쪼개서 함수가 최대한 한 가지 일만 하게끔 만들어보자.
+
+코드 1-36 함수 쪼개기
+
+```jsx
+function positive(list) {
+	return _.find(list, _.identity);
+}
+
+function negativeIndex(list) {
+	return _.findIndex(list, not);
+}
+
+_.some = function(list) {
+	return not(not(positive(list)));
+};
+
+_.every = function(list) {
+	return beq(-1)(negativeIndex(list));
+};
+
+console.log(_.some([0, null, 2])); // true
+console.log(_.some([0, null, false])); // false
+console.log(_.every([0, null, 2])); // false
+console.log(_.every([{}, true, 2])); // true
+```
+
+일단 좀 더 깔끔해졌다. positive와 negativeIndex라는 재사용 가능한 함수도 얻었다.
+
+### 1.3.7 함수 합성
+
+**함수를 쪼갤수록 함수 합성은 쉬워진다.**
+
+Underscore.js의 _.compose 함수를 사용해볼 것이다.
+
+_.compose는 오른쪽의 함수의 결과를 바로 왼쪽의 함수에게 전달하는 고차 함수이다.
+
+코드 1-37 _.compose
+
+```jsx
+//Underscore.js 중
+_.compose = function() {
+	var args = arguments;
+	var start = args.length -1;
+	return function() {
+		var i = start;
+		var result = args[start].apply(this, arguments);
+
+		while(i--) result = args[i].call(this, result);
+
+		return result;
+	};
+};
+
+var greet = function(name) { return `hi: ${name}`; };
+var exclaim = function(statement) { return `${statement.toUpperCase()}!`; };
+var welcome = _.compose(greet, exclaim);
+welcome("moe"); // 'hi: MOE!'
+```
+
+welcome을 실행하면 먼저 exclaim을 실행하면서 "moe"를 인자로 넘겨준다. exclaim의 결과는 대문자로 변환된 "MOE!"이고, 그 결과는 다시 greet의 인자로 넘어가 최종 결과로 "hi: MOE!"를 리턴한다.
+
+원래 코드
+
+```jsx
+_.some = function(list) {
+	return not(not(positive(list)));
+};
+
+_.every = function(list) {
+	return beq(-1)(negativeIndex(list));
+};
+```
+
+코드 1-38 _.compose로 함수 합성하기
+
+```jsx
+_.some = _.compose(not, not, positive);
+_.every = _.compose(beq(-1), negativeIndex);
+```
+
+이번엔 _.some과 _.every를 간결하게 표현했다. 원래 코드와 동일하게 동작한다.
+
+오른쪽에서부터 왼쪽으로 연속적으로 실행되어 결과를 만들어낸다.
+
+값 대신 함수로, for와 if 대신 고차 함수와 보조 함수로, 연산자 대신 함수로, 함수 합성 등 앞서 설명한 함수적 기법들을 사용하면 **코드도 간결해지고 함수명을 통해 로직을 더 명확히 전달할 수 있어 좋은 코드가 된다.**
+
+짧고 읽기 좋은 코드도 중요한 가치이지만 좀 더 고상한 이점이 있다. **인자 선언이나 변수 선언이 적어진다는 점이다.** 코드에 인자와 변수가 등장하지 않고 함수의 내부({statements})가 보이지 않는다는 것은 **새로운 상황도 생기지 않는다는 말이다.**
+
+새로운 상황이 생기지 않는다는 것은 **개발자가 예측하지 못할 상황이 없다는 말이다.** 에러 없는 함수들이 인자와 결과에 맞게 잘 조합되어 있다면 전체의 결과 역시 에러가 날 수 없다. 상태를 공유하지 않는 작은 단위의 함수들은 테스트하기도 쉽고 테스트 케이스를 작성하기도 쉽다.
+
+인자와 변수 자체가 적을 수록, 함수의 {statements}가 없거나 짧을수록, 함수들의 복잡성도 줄어들고 오류 발생 가능성도 줄어들며 부수 효과도 줄어든다.
+
+코드를 수정해야 하는 상황에, 자신이 고쳐야 하는 함수의 문제에만 집중할 수 있게 되는 것이다.
+
+또한 작성한지 오래된 코드일지라도 다시 읽고 고치기가 쉬워진다.
+
+함수 하나하나가 무슨 일을 하는지에 대해 인자와 결과 위주로만 생각하면서 읽고 고칠 수 있게 되는 것이다.
+
+**작게 쪼개다 보면 정말 쓸모 없어 보이는 함수가 많이 나오기도 한다. 그래도 더 작은 단위로 쪼개 보라. 재사용성이 높고 재밌는 코드들이 나올 것이다. 제어문 대신 함수를, 값 대신 함수를, 연산자 대신 함수를 사용해 보자. 프로그래밍에 대한 새롭고 재밌는 아이디어들을 만나게 될 것이다.**
+
+<sub id="2020-03-03"><sup>-- 2020-03-03 --</sup></sub>
