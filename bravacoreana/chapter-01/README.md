@@ -4,7 +4,10 @@
 
 <br/>
 
-좋은 프로그램이란 **사용성, 성능, 확장성, 기획 변경에 대한 대응력** 등을 척도로 삼아 이것들을 효율적, 생산적으로 이뤄낸 프로그램이다. 함수형 프로그래밍은 부수 효과(side effect)를 최대한 멀리하고 조합성을 강조해 성공적인 프로그래밍을 이루도록 함에 그 목적이 있다. 이러한 부수 효과를 멀리하는 이유는 (1)오류를 줄이기 위해 (2)조합성 혹은 모듈화 수준을 높히기 위해서다.
+좋은 프로그램이란 **사용성, 성능, 확장성, 기획 변경에 대한 대응력** 등을 척도로 삼아 이것들을 효율적, 생산적으로 이뤄낸 프로그램이다. 함수형 프로그래밍은 부수 효과(side effect)를 최대한 멀리하고 조합성을 강조해 성공적인 프로그래밍을 이루도록 함에 그 목적이 있다.
+
+부수 효과를 멀리하는 이유? (1)오류를 줄이기 위해 (2)조합성 혹은 모듈화 수준을 높히기 위해
+
 
 ## 🗂 목차
 <details>
@@ -82,9 +85,8 @@
 ### 1.1 함수형 그거 먹는 건가요?
 
 
-[1.1.1 함수형 자바스크립트를 검색하면 나오는 예제](#1-1-1)
-[1.1.2 값으로써의 함수와 클로저](#1-1-2)
-<br/>
+[1.1.1 함수형 자바스크립트를 검색하면 나오는 예제](#1-1-1)<br/>
+[1.1.2 값으로써의 함수와 클로저](#1-1-2)<br/>
 
 <div id="1-1-1"></div>
 
@@ -95,9 +97,9 @@
 
 // 커링의 대표적인 예시
 function addMaker(a) {
-    return function(b) {
-        return a+b;
-    }
+  return function (b) {
+    return a + b;
+  };
 }
 addMaker(10)(5); // 15
 ```
@@ -111,13 +113,15 @@ add5(4); // 9
 ```
 
 위의 코드를 통해 값으로서의 함수, 클로저, 스코프 등 많은 이야기를 풀어낼 수 있다.
+
 ```javascript
 // 코드 1-3 값으로서의 함수
 
 var v1 = 100;
-var v2 = function() {}; // 변수에 함수를 담고 있다
-function f1() {return 100;}
-function f2() {return function() {};}   // f2 함수가 또 다른 함수를 리턴한다
+var v2 = function () {}; // 변수에 함수를 담고 있다
+function f1() { return 100; }
+function f2() { return function () {};} // f2 함수가 또 다른 함수를 리턴한다
+
 ```
 
 <div id="1-1-2"></div>
@@ -131,12 +135,12 @@ function f2() {return function() {};}   // f2 함수가 또 다른 함수를 리
 // 코드 1-4. addMaker 다시보기
 
 function addMaker(a) {
-    return function(b) {
-        return a+b;
-    }
+  return function (b) {
+    return a + b;
+  };
 }
 
-var add5 = addMaker(10)(5) //15
+var add5 = addMaker(5); //15
 add5(3); // 8
 add5(4); // 9
 
@@ -147,13 +151,28 @@ add3(4); // 7
 
 
 여기서 addMaker가 리턴한 익명 함수는 클로저가 되었다.
+
 **클로저의 특징**: 리턴된 익명 함수 내부에서 a 를 정의한 적은 없지만 부모 스코프에 있는 a를 참조하고 있다.  (위에서는 a 값이 불변하며 상수로 쓰이지만 클로저가 기억하는 변수의 값은 변할 수 있음에 주의하자. → 1.4절 참고)
 <br/>
 
 <div id="1-2"></div>
 
 ### 1.2 함수형 자바스크립트의 실용성
+
 절차지향적으로 작성된 코드를 함수형으로 변경하며 함수형 자바스크립트의 실용성을 알아보자.
+
+[1.2.1 회원 목록 중 여러 명 찾기](#1-2-1)<br/>
+[1.2.2 for에서 filer로, if에서 predicate로](#1-2-2)<br/>
+[1.2.3 함수형 프로그래밍 관점으로 filter 보기](#1-2-3)<br/>
+[1.2.4 map 함수](#1-2-4)<br/>
+[1.2.5 실행 결과로 바로 실행하기](#1-2-5)<br/>
+[코드 1-12와 코드 1-5 비교 해보기 (함수형 vs 반복문)](#comparison-1)<br/>
+[1.2.6 함수를 다른 값으로 다룬 예제의 실용성](#1-2-6)<br/>
+
+<br/>
+
+
+<div id="1-2-1"></div>
 
 #### 1.2.1 회원 목록 중 여러 명 찾기
 
@@ -201,7 +220,10 @@ console.log(names); // ['ID','BJ','JM']
 ```
 (1)과 (3)의 for 문에서 조건(`age >= 30, age < 30`)을 제외하고는 모두 동일한 코드를 가지고 있다. 이런 중복을 제거하기 위해 함수를 활용하면 쉽게 추상화가 가능하다.
 
+<div id="1-2-2"></div>
+
 #### 1.2.2 for에서 filer로, if에서 predicate로
+
 ```javascript
 // 코드 1-6. filter
 
@@ -216,11 +238,11 @@ console.log(temp_users.length); // 4
 
 // 바꾼 코드
 function filter(list, predicate) {
-    var new_list = [];
-    for(var i=0, len=list.length; i<len;i++>) {
-        if(predicate(list[i])) new_list.push(list[i]);
-    }
-    return new_list;
+  var new_list = [];
+  for (var i = 0, len = list.length; i < len; i++) {
+    if (predicate(list[i])) new_list.push(list[i]);
+  }
+  return new_list;
 }
 ```
 
@@ -258,6 +280,8 @@ console.log(names); // [ 'ID', 'BJ', 'JM' ]
 ```
 
 (1), (2)에서 filter 함수를 실행하며 predicate 자리에 익명 함수를 정의해 넘겼다. 여기서 익명함수는 true/false 를 리턴하며, filter 함수는 익명함수가 true 를 넘겨줄 때만 new_list에 user를 담아 리턴한다.(코드 1-6, 코드 1-7)
+
+<div id="1-2-3"></div>
 
 #### 1.2.3 함수형 프로그래밍 관점으로 filter 보기
 
@@ -312,14 +336,16 @@ console.log(names); // [ 'ID', 'BJ', 'JM' ]
 // 바꾼 코드
 function map(list, iteratee) {
   var new_list = [];
-  for (var i=0, len=list.length; i<len; i++) {
+  for (var i = 0, len = list.length; i < len; i++) {
     new_list.push(iteratee(list[i]));
     // new_list에 무엇을 push 할 지 iteratee 함수에게 위임했다
   }
   return new_list;
 }
 ```
+
 map  함수를 사용해 보자.
+
 ```javascript
 // 코드 1-9 map 사용
 
@@ -344,8 +370,12 @@ console.log(names); // ["ID", "BJ", "JM"]
 
 for도 없고, if도 없다. 코드가 매우 단순해졌으며, 코드를 해석한 내용과 코드의 내용이 거의 일치하고 읽기 쉽다.
 
+<div id="1-2-5"></div>
+
 #### 1.2.5 실행 결과로 바로 실행하기
+
 함수의 리턴값을 바로 다른 함수의 인자로 사용하면 변수 할당을 줄일 수 있다. filter 함수의 결과가 배열이므로 map의 첫 번째 인자로 바로 사용 가능하다.
+
 <span style="color:green">Q. 변수 할당을 줄였을 때 장점이 있나?</span>
 
 ```javascript
@@ -366,3 +396,102 @@ console.log(names.length); // 3
 console.log(names); // ["ID", "BJ", "JM"]
 ```
 
+여기서 작은 함수를 하나 더 만들면 변수 할당(ages, names)을 모두 없앨 수 있다.
+
+
+```javascript
+// 코드 1-11 합수 중첩2
+function log_length(value) {
+  console.log(value.length);
+  return value;
+}
+
+console.log(log_length(
+  map(
+                  // predicate
+    filter(users, function (user) { return user.age < 30; }),
+    function (user) { return user.age;})));
+// 4
+// [25, 28, 27, 24]
+
+console.log(log_length(
+  map(
+                  // predicate
+    filter(users, function(user) { return user.age >= 30; }),
+    function(user) { return user.name; })))
+// 3
+// ["ID", "BJ", "JM"]
+```
+```javascript
+// 코드 1-8. map
+function map(list, iteratee) {
+  var new_list = [];
+  for (var i = 0, len = list.length; i < len; i++) {
+    new_list.push(iteratee(list[i]));
+  }
+  return new_list;
+}
+```
+filter 함수는 predicate를 통해 값을 필터링하여 map에게 전달하고, map은 받은 iteratee를 통해 새로운 값들을 만들어 log_length에게 전달한다. log_length는 length(`value.length`)를 출력한 후 받은 인자를 그대로 console.log에게 전달하고 console.log는 받은 값을 출력한다
+코드 1-5를 완전히 함수형으로 변화시킨 코드는 아래와 같다.
+```javascript
+// 코드 1-12. filter, map
+function filter(list, predicate) {
+  var new_list = [];
+  for (var i = 0, len = list.length; i < len; i++) {
+    if (predicate(list[i])) new_list.push(list[i]);
+  }
+  return new_list;
+}
+function map(list, iteratee) {
+  var new_list = [];
+  for (var i = 0, len = list.length; i < len; i++) {
+    new_list.push(iteratee(list[i]));
+  }
+  return new_list;
+}
+function log_length(value) {
+  console.log(value.length);
+  return value;
+}
+console.log(log_length(
+    map(
+      filter(users, function (user) { return user.age < 30;}),
+      function (user) { return user.age; })));
+console.log(log_length(
+    map(
+      filter(users, function (user) { return user.age >= 30; }),
+      function (user) { return user.age; })));
+```
+<br/>
+
+<div id="comparison-1"></div>
+
+👉🏼 코드 1-12와 코드 1-5 비교 해보기 (함수형 vs 반복문)
+![code-comparison](/bravacoreana/chapter-01/img/code-comparison.png)
+
+💁🏻‍♀️ 현재까지의 코드 자체는 길어졌지만 filter, map, log_length 함수를 재활용 할 수 있게 되어 본격적으로 코드가 길어지는 경우 훨씬 더효율적인 코드 작성이 가능해졌다. 게다가 반복문을 피하면서 코드가 훨씬 예뻐졌다! 🎉
+
+<div id="1-2-6"></div>
+
+#### 1.2.6 함수를 다른 값으로 다룬 예제의 실용성
+1.1 절에 나왔던 addMaker 와 비슷한 패턴의 함수가 실제로도 많이 사용되는데 이것과 비슷한 패턴의 함수인 bvalue 함수를 만들면 코드 1-12 의 코드를 더 줄일 수 있다.
+
+```javascript
+// 코드 1-13. 함수를 리턴하는 함수 bvalue
+// 코드 1-1. addMaker
+function addMaker(a) {
+    return function (b) {
+      return a + b;
+    };
+  }
+  
+function bvalue(key) {
+    return function(obj) {
+        return obj[key];
+    }
+}
+bvalue('a')({a:"hi", b:"hello"}); // hi
+```
+
+bvalue 를 실행할 때 넘겨준 인자 key(위에서는 a)를 나중에 obj를 받을 익명함수가 기억한다.(클로저!) bvalue의 실행 결과는 key를 기억하는 함수고 이 함수에는 key/value 쌍으로 구성된 객체를 인자로 넘길 수 있다. 이 함수는 obj을 받아 앞에서 받아두었던 key(a)로 value(hi) 값을 리턴한다. 즉, a 를 기억해 두었다가 넘겨진 객체의 obj['a']에 해당하는 결과값 hi를 리턴한다.
