@@ -13,6 +13,30 @@ _.compose = function () {
   };
 };
 
+_.add = function add(a, b) {
+  return a + b;
+};
+
+_.sub = function sub(a, b) {
+  return a - b;
+};
+
+_.get = function (list, idx) {
+  return list(idx);
+};
+
+_.callWith = function callWith(val1) {
+  return function (val2, func) {
+    return func(val1, val2);
+  };
+};
+
+_.contant = function constant(val) {
+  return function () {
+    return val;
+  };
+};
+
 _.map = function (list, iteratee) {
   var newList = [];
   for (var i = 0, len = list.length; i < len; i++) {
@@ -66,5 +90,7 @@ _.positive = function positive(list) {
 _.negativeIndex = function negativeIndex(list) {
   return _.findIndex(list, _.not);
 };
+
+//////////////////////////////////////////////////////////////////////
 
 module.exports = _;

@@ -1,0 +1,25 @@
+<div class="user-list"></div>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script>
+var users = [
+	{ id: 1, name: "HA", age: 25},
+	{ id: 2, name: "PJ", age: 28},
+	{ id: 3, name: "JE", age: 27},
+];
+
+$('.user-list').append(
+	_.map(users, function(user) { // one 이 함수는 클로저가 아니다.
+		var button = $('<button>').text(user.name); // two
+		button.click(function() { // three 계속 유지되는 클로저 (내부에서 user를 사용했다.)
+			if(confirm(`${user.name}님을 팔로잉 하시겠습니까?`)) folloew(user); // four
+		});
+		return button; // five
+	}));
+
+function follow(user) {
+	$.post('/follow', { user_id: user.id }, function() { // six 클로저가 되었다가
+		alert(`이제 ${user.name}님의 소식을 보실 수 있습니다.`);    // 없어지는 클로저
+	});
+}
+</script>
