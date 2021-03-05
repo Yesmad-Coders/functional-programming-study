@@ -229,4 +229,4 @@ f11(30); // 60
 
 <sub id="2021-03-05"><sup>-- 2021-03-05 --</sup></sub>
 
-[[이전으로]](../chapter1-3/README.md) / [[뒤로가기]](../README.md)
+[[이전으로]](../chapter1-3/README.md) / [[목록으로]](../README.md)
