@@ -541,4 +541,4 @@ _.every = _.compose(beq(-1), negativeIndex);
 
 <sub id="2021-03-03"><sup>-- 2021-03-03 --</sup></sub>
 
-[[이전으로]](../chapter1-2/README.md) / [[뒤로가기]](../README.md) / [[다음으로]](../chapter1-4/README.md)
+[[이전으로]](../chapter1-2/README.md) / [[목록으로]](../README.md) / [[다음으로]](../chapter1-4/README.md)

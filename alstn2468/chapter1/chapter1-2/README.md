@@ -326,4 +326,4 @@ console.log(
 
 `map`이 사용할 `iteratee` 함수를 `bvalue`가 반환한 함수로 대체되었으며 익명 함수 선언이 사라져 코드가 더욱 짧아졌다.
 
-[[이전으로]](../chapter1-1/README.md) / [[뒤로가기]](../README.md) / [[다음으로]](../chapter1-3/README.md)
+[[이전으로]](../chapter1-1/README.md) / [[목록으로]](../README.md) / [[다음으로]](../chapter1-3/README.md)
