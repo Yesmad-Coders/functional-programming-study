@@ -1,3 +1,5 @@
+// 클로저
+
 function parent() {
   var a = 5;
   function myfn() {
