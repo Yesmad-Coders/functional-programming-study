@@ -29,7 +29,7 @@
 </div>
 </details>
 <details>
-<summary>1.3 함수형 자바스크립트의 실용성 2</summary>
+<summary>1.3 함수형 자바스크립트의 실용성 2 <a href="#1-3">바로가기</a></summary>
 <div markdown="1">
 &nbsp&nbsp&nbsp&nbsp 1.3.1 회원 목록 중 한 명 찾기<br/>
 &nbsp&nbsp&nbsp&nbsp 1.3.2 값에서 함수로<br/>
@@ -494,4 +494,316 @@ function bvalue(key) {
 bvalue('a')({a:"hi", b:"hello"}); // hi
 ```
 
-bvalue 를 실행할 때 넘겨준 인자 key(위에서는 a)를 나중에 obj를 받을 익명함수가 기억한다.(클로저!) bvalue의 실행 결과는 key를 기억하는 함수고 이 함수에는 key/value 쌍으로 구성된 객체를 인자로 넘길 수 있다. 이 함수는 obj을 받아 앞에서 받아두었던 key(a)로 value(hi) 값을 리턴한다. 즉, a 를 기억해 두었다가 넘겨진 객체의 obj['a']에 해당하는 결과값 hi를 리턴한다.
+![code-1-13](img/1-13.jpeg)
+
+`bvalue` 를 실행할 때 넘겨준 인자 key(위에서는 'a')를 나중에 obj를 받을 익명함수(파란박스)가 기억한다.(**클로저!**) bvalue의 실행 결과는 key를 기억하는 함수고 이 함수에는 key/value 쌍으로 구성된 객체를 인자로 넘길 수 있다. 이 함수(파란박스)는 obj을 받아 앞에서 받아두었던 key(a)로 value(hi) 값을 리턴한다. 즉, a 를 기억해 두었다가 넘겨진 객체의 obj['a']에 해당하는 결과값 "hi" 를 리턴한다.
+
+```javascript
+// 코드 1-14. bvalue로 map의 iteratee 만들기
+
+// (1)
+console.log(log_length(
+    map(filter(users, function (user) { return user.age < 30;}),
+    bvalue("age"))));
+
+console.log(log_length(
+    map(filter(users, function (user) { return user.age >= 30; }),
+    bvalue("name"))));
+```
+
+▶ (1)의 코드 설명: `filter`로 걸러진 obj를 `map`이 돌리고 그 중 `bvalue`(obj에서 key에 따른 value를 뽑는 함수)를 통해 age라는 key의 value를 추출한다.
+<br/><br/>
+map이 사용할 iteratee 함수를 bvalue가 리턴한 함수로 대체했다.<br/>
+(원래 `map(list, iteratee)` 형태임을 기억하자.)<br/>
+익명 함수 선언 대신 `bvalue`를 넣음으로서 코드가 더욱 짧아졌다!
+
+```javascript
+// 코드 1-15. 화살표 함수와 함께
+
+const log_length = require("./data/log_length");
+const users = require("./data/users");
+const map = require("./data/map");
+const filter = require("./data/filter");
+const bvalue = require("./data/bvalue");
+
+// ES6
+console.log(log_length(
+    map(filter(users, u => u.age < 30), u => u.age)));
+console.log(log_length(
+    map(filter(users, u => u.age >= 30), u => u.name)));
+
+// 이것도 괜찮다
+var under_30 = u => u.age < 30;
+var over_30 = u => u.age >= 30;
+
+console.log(log_length(map(filter(users, under_30), u => u.age)));
+console.log(log_length(map(filter(users, over_30), u => u.name)));
+
+// // 아니면 이것도 괜찮다
+var ages = list => map(list, v => v.age);
+var names = list => map(list, v => v.name);
+
+console.log(log_length(ages(filter(users, under_30))));
+console.log(log_length(names(filter(users, over_30))));
+
+// 마지막으로 한 번만 고쳐보자
+var bvalues = (key) => (list) => map(list, v => v[key]);
+var ages = bvalues("age");
+var names = bvalues("name");
+
+// bvalue가 있으면 화살표 함수가 아니어도 충분히 간결해진다
+function bvalues(key) {
+  return function (list) {
+    return map(list, function (v) { return v[key]; });
+  };
+}
+
+var ages = bvalues("age");
+var names = bvalues("name");
+var under_30 = function (u) { return u.age < 30; };
+var over_30 = function (u) { return u.age >= 30; };
+
+console.log("No7", log_length(ages(filter(users, under_30))));
+console.log("No8", log_length(names(filter(users, over_30))));
+
+// bvalue는 이렇게도 할 수 있다. (진짜 마지막!)
+function bvalues(key) {
+  var value = bvalue(key);
+  return function (list) {
+    return map(list, value);
+  };
+}
+```
+
+<div id="1-3"></div>
+
+### 1.3 함수형 자바스크립트의 실용성 2
+
+[1.3.1 회원 목록 중 한명 찾기](#1-3-1)<br/>
+[1.3.2 값에서 함수로](#1-3-2)<br/>
+[1.3.3 함수를 만드는 함수와 find, filter 조합하기](#1-3-3)<br/>
+[1.3.4 고차 함수](#1-3-4)<br/>
+[1.3.5 function identity(v) {return v;}, 이건 어디다 쓰는 거지?](#1-3-5)<br/>
+[1.3.6 연산자 대신 함수로](#1-3-6)<br/>
+[1.3.7 함수 합성](#1-3-7)<br/>
+
+<div id="1-3-1"></div>
+
+#### 1.3.1 회원 목록 중 한명 찾기
+
+회원 목롱 중 특정 조건을 가진 회원 한 명을 찾고자 한다. 예를 들어 id 값으로 말이다.
+
+```javascript
+// 코드 1-16. filter로 한 명 찾기
+
+var users = [
+  { id: 1, name: "ID", age: 32 },
+  { id: 2, name: "HA", age: 25 },
+  { id: 3, name: "BJ", age: 32 },
+  { id: 4, name: "PJ", age: 28 },
+  { id: 5, name: "JE", age: 27 },
+  { id: 6, name: "JM", age: 32 },
+  { id: 7, name: "HI", age: 24 },
+];
+
+console.log(
+  filter(users, function (user) { return user.id == 3 })[0]);
+  // { id: 3, name: 'BJ', age: 32 }
+```
+
+▶ 코드 설명: filter가 배열로 반환되고 그 안에 우리가 원하는 obj 이 있기 때문에 `[0]`를 써서 배열로부터 obj을 꺼내준다. 즉, `filter(users, function (user) { return user.id == 3 })`까지만 봤을 때의 리턴값은 `[{ id: 3, name: 'BJ', age: 32 }]`가 된다.
+<br/><br/>
+이 코드의 경우 filter를 사용해 원하는 결과값을 찾을 수는 있지만 filter 함수는 무조건 `list.length`만큼 predicate(filter의 두번째 파라미터 값)가 실행되기 때문에 비효율적이고, 동일 조건에 값이 두 개 이상이라면 두 개 이상의 값을 찾는다. 따라서 코드 1-17과 같은 코드가 좀 더 효율적일 것이다.
+
+```javascript
+// 코드 1-17. break
+// 코드 1-16 보다는 효율적이지만 재사용이 불가능하다
+
+var user;
+for (var i = 0, len = users.length; i < len; i++) {
+  if (users[i].id == 3) {
+    user = users[i];
+        break;
+    }
+}
+console.log(user);  // { id: 3, name: "BJ", age: 32 }
+```
+코드 1-17의 경우 filter 함수를 쓸 때와는 다르게 내가 원하는 값을 찾는 순간 break로 for문을 빠져 나올 수 있다. 따라서 코드 1-16 보다 효율적이다. 하지만 **재사용이 불가능**하다. 이것을 재사용이 가능하도록 다시 만든다면 코드 1-18 과 같다.
+
+```javascript
+// 코드 1-18. findById
+// 재사용은 가능해졌지만 찾으려는 요소마다 함수를 따로 실행해야 하므로 효율적이지 못하다.
+
+function findById(list, id) {
+  for (var i=0, len=list.length; i < len; i++) {
+    if(list[i].id == id) return list[i];
+    }
+}
+console.log(findById(users, 3));    // { id: 3, name: "BJ", age: 32 }
+console.log(findById(users, 5));    // { id: 5, name: "JE", age: 27 }
+```
+
+findById 함수는 list와 id를 받아서 for문을 돌다가 id가 같은 객체를 만나면 (1)그 값을 리턴하고 (2)함수도 종료되고 (3)for문도 멈춘다. 만약 for문을 다 돌았는데도 못찾았다면 undefined 가 리턴된다.
+
+```javascript
+// 코드 1-19. findByName
+
+function findByName(list, name) {
+    for (var i=0, len=list.length; i<len; i++) {
+        if(list[i].name == name) return list[i];
+    }
+}
+
+console.log(findByName(users, "BJ")); // { id: 3, name: "BJ", age: 32 }
+console.log(findByName(users, "JE")); // { id: 5, name: "JE", age: 27 }
+```
+
+```javascript
+// 코드 1-20. findByAge
+
+function findByAge(list, age) {
+    for(var i=0, len = list.length; i<len; i++) {
+        if(list[i].age == age) return list[i];
+    }
+}
+
+console.log(findByAge(users, 28));  // { id: 4, name: "PJ", age: 28 }
+console.log(findByAge(users, 25));  // { id: 2, name: "HA", age: 25 }
+```
+
+코드 1-18, 1-19, 1-20 는 모두 코드에 중복이 있기에 같으면서 다르다.(same same but different!🤨) 결론부터 말하자면 이 함수들은 함수형이 아니다! 반복 요소를 줄일 수 있는 방법을 찾아보자.
+
+```javascript
+// 코드 1-21. findBy
+// 반복은 피했지만 여전히 한계점이 있다.
+
+function findBy(key, list, val) {
+    for(var i=0, len=list.length; i<len; i++) {
+        if(list[i][key]===val) return list[i];
+    }
+}
+
+console.log(findBy('name', users, "BJ"));   // { id: 3, name: 'BJ', age: 32 }
+console.log(findBy("id", users, 2));    // { id: 2, name: 'HA', age: 25 }
+console.log(findBy('age', users, 28));  // { id: 4, name: 'PJ', age: 28 }
+```
+
+이렇게 만들면 이름, 나이, 아이디 뿐 아니라 object 내의 다른 값도 내 마음대로 골라 찾을 수 있다! Key로 value를 얻을 수 있는 객체들을 가진 배열마다 무엇이든 받을 수 있다는 말이다. 객체의 key 값이 뭐가 됐든 간에 찾아줄 수 있어서 훨씬 더 유연한(많은 경우를 대응할 수 있는) 함수가 되었다. 하지만! 아직 다음과 같은 상황을 지원하지 못하는 아쉬움이 있다.
+
+- key가 아닌 method를 통해 값을 얻어야 할 때
+- 두 가지 이상의 조건이 필요할 때
+- ===이 아닌 다른 조건으로 찾고자 할 때
+
+다음 예제는 user 객체가 메서드로 값을 얻어야 하는 객체인 경우에 발생하는 난감한 상황을 보여준다.
+
+```javascript
+// 코드 1-22. findBy로 안되는 경우
+function User(id, name, age) {
+    this.getId = function() { return id; }
+    this.getName = function() { return name; }
+    this.getAge = function() { return age; }
+}
+
+function findBy(key, list, val) {
+    for(var i=0, len=list.length; i<len; i++) {
+        if(list[i][key] === val) return list[i];
+    }
+}
+
+var users2 = [
+    new User(1, "ID", 32),
+    new User(2, "HA", 25),
+    new User(3, "BJ", 25),
+    new User(4, "PJ", 25),
+    new User(5, "JE", 25),
+    new User(6, "JM", 25),
+    new User(7, "HI", 25),
+]
+
+console.log(findBy('age', users2, 25)); // undefined
+```
+<div id="limitation"></div>
+👉🏼 한계점: 코드 1-22에서 user의 나이를 getAge()로 얻어야 하기 때문에 findBy 함수로는 위 상황을 대응할 수 없음을 알 수 있다. 이름에 "P"가 포함된 user를 찾고 싶다거나, 나이가 32이면서 이름이 'JM'인 user를 찾고 싶다거나 하는 것도 불가능하다. 나이가 30 미만인 사람을 찾는 것도 findBy로는 할 수 없다. 이런 문제들을 함수형 프로그래밍을 통해 해결 해보자.
+
+<div id="1-3-2"></div>
+
+#### 1.3.2 값에서 함수로
+
+앞서 만들었던 filter나 map처럼 인자로 키와 값 대신에 **함수**를 사용해보자. 그렇게 하면 모든 상황에 대응 가능한 find 함수를 만들 수 있다.
+
+```javascript
+// 코드 1-23. find
+
+function find(list, predicate) {
+    for (var i=0, len=list.length; i<len; i++) {
+        if(predicate(list[i])) return list[i];
+    }
+}
+
+console.log(find(users2, function(u) { return u.getAge() == 25;}).getName());
+// HA
+console.log(find(users, function(u) { return u.name.indexOf("P") != -1; }));
+// { id: 4, name: 'PJ', age: 28 }
+console.log(find(users, function(u) { return u.age == 32 && u.name == "JM"; }));
+// { id: 6, name: 'JM', age: 32 }
+console.log(find(users2, function(u) { return u.getAge() < 30; }).getName());
+// HA
+```
+
+코드 1-21에서는 findBy의 인자로 `key`, `list`, `val` 를 받았지만 코드 1-23에서는 find의 인자로 `key`와 `predicate`를 받았다. list와 val 대신 predicate 함수를 받은 것이다. 다시 말해, **값 대신 함수를 받았다**. 덕분에 if 안쪽에서 할 수 있는 일이 훨씬 많아졌고 <a href="#limitation">앞서 언급했던 한계점</a>들도 극복할 수 있게 되었다. getAge같은 메서드 실행을 통해 값을 비교하기도 했고, indexOf와 같은 메서드를 통해 이름에 "P"가 포함되는지를 알아내기도 했다. 또한 두가지 조건을 모두 만족하는 값도 찾을 수 있고, range를 통한 값 찾기도 가능해졌다.
+<br/>
+<br/>
+인자를 String이나 Number 대신 Function으로 변경했더니 매우 큰 차이를 만들었다. 덕분에 find는 이제 배열에 어떤 값이 들어 있든 사용할 수 있게 되었다. 앞서 만든 map과 filter도 마찬가지다.
+> 함수형 자바스크립트는 이처럼 다형성이 높은 기법을 많이 사용하며 이런 기법은 정말 실용적이다.
+
+<br/>
+우리가 만든 filter, map, find 함수들은 들어온 데이터가 무엇이든지 루프를 돌리거나 분기를 만들거나 push를 하거나 predicate를 실행하거나 등의 자기 할 일을 한다. find는 전달 받을 데이터와 데이터의 특성에 맞는 보조 함수(predicate)도 함께 전달 받는다. 들어온 데이터의 특성은 보조 함수가 대응해 주기 때문에 find 함수는 데이터의 특성에서 완전히 분리될 수 있다. 이러한 방식은 다형성을 높이며 동시에 안정성도 높인다.
+<br/>
+filter나 find는 list 내부에 무엇이 들어 있는 지는 관심이 없다. 배열 내부 값의 상태를 변경하지도 않고 들여다 보지도 않는다. 객체지향 프로그래밍이 약속된 이름의 메서드를 대신 실행해 주는 식으로 외부 객체에 위임을 한다면, 함수형 프로그래밍은 보조 함수를 통해 완전히 위임하는 방식을 취한다. 이는 더 높은 다형성과 안정성을 보장한다.
+<br/>
+다음과 같은 함수들을 사용하면 각 데이터에 맞는 보조 함수로 대응하는 사례다.
+
+```javascript
+// 코드 1-24. 다형성
+
+// 코드 1-16 에서 선언한 users
+console.log(
+    map(
+        filter(users, function(u) { return u.age >= 30 }),
+        function(u) { return u.name; }));
+// [ 'ID', 'BJ', 'JM' ]
+
+// 코드 1-22 에서 선언한 users2로 교체
+console.log(map(
+    filter(users2, function(u) { return u.getAge() > 30 }), // 메서드 실행으로 변경
+    function(u) { return u.getName(); })); // 메서드 실행으로 변경
+// ["ID"]
+```
+
+<div id="1-3-3"></div>
+#### 1.3.3 함수를 만드는 함수와 find, filter 조합하기
+<div id="1-3-4"></div> 
+#### 1.3.4 고차 함수
+<div id="1-3-5"></div> 
+#### 1.3.5 function identity(v) {return v;}, 이건 어디다 쓰는 거지?
+<div id="1-3-6"></div> 
+#### 1.3.6 연산자 대신 함수로
+<div id="1-3-7"></div>
+#### 1.3.7 함수 합성
+
+<div id="1-4"></div>
+### 1.4 함수형 자바스크립트를 위한 기초
+<div id="1-4-1"></div>
+#### 1.4.1 일급 함수
+<div id="1-4-2"></div>
+#### 1.4.2 클로저
+<div id="1-4-3"></div>
+#### 1.4.3 클로저의 실용 사례
+<div id="1-4-4"></div>
+#### 1.4.4 클로저를 많이 사용하라!
+<div id="1-4-5"></div>
+#### 1.4.5 고차 함수
+<div id="1-4-6"></div>
+#### 1.4.6 콜백 함수라 잘못 불리는 보조 함수
+<div id="1-4-7"></div>
+#### 1.4.7 함수를 리턴하는 함수와 부분 적용
