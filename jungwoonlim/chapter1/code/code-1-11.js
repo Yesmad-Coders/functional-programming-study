@@ -1,13 +1,12 @@
 // 코드 1-11 함수 중첩2
-function logLength(value) {
-  console.log(value.length);
-  return value;
-}
+const FUNCTIONAL = require("./functional.module.js");
+
+var users = FUNCTIONAL.users;
 
 console.log(
-  logLength(
-    map(
-      filter(users, function (user) {
+  FUNCTIONAL.logLength(
+    FUNCTIONAL.map(
+      FUNCTIONAL.filter(users, function (user) {
         return user.age < 30;
       }),
       function (user) {
@@ -20,9 +19,9 @@ console.log(
 // [25, 28, 27, 24]
 
 console.log(
-  logLength(
-    map(
-      filter(users, function (user) {
+  FUNCTIONAL.logLength(
+    FUNCTIONAL.map(
+      FUNCTIONAL.filter(users, function (user) {
         return user.age >= 30;
       }),
       function (user) {
