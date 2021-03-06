@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Code 1-46</title>
+    <script src="lib/jquery.js"></script>
+    <script src="lib/underscore.js"></script>
+  </head>
+  <body>
+    <div class="user-list"></div>
+    <script>
+      var users = [
+        { id: 1, name: 'HA', age: 25 },
+        { id: 2, name: 'PJ', age: 28 },
+        { id: 3, name: 'JE', age: 27 },
+      ];
+      $('.user-list').append(
+        _.map(users, function (user) {
+          // (1) 이 함수는 클로저가 아니다.
+          var button = $('<button>').text(user.name); // (2)
+          button.click(function () {
+            // (3) 계속 유지되는 클로저 (내부에서 user를 사용했다.)
+            if (confirm(user.name + '님을 팔로잉 하시겠습니까?')) follow(user); // (4)
+          });
+          return button; // (5)
+        })
+      );
+      function follow(user) {
+        $.post('/follow', { user_id: user.id }, function () {
+          // (6) 클로저가 되었다가 없어지는 클로저
+          alert('이제 ' + user.name + '님의 소식을 보실 수 있습니다.');
+        });
+      }
+    </script>
+  </body>
+</html>
