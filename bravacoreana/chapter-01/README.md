@@ -8,52 +8,56 @@
 
 부수 효과를 멀리하는 이유? (1)오류를 줄이기 위해 (2)조합성 혹은 모듈화 수준을 높히기 위해
 
-
 ## 🗂 목차
 <details>
-<summary>1.1 함수형 프로그래밍 그거 먹는건가요? <a href="#1-1">바로가기</a> </summary> 
+<!-- <summary>1.1 <a href="1-1/README.md">함수형 프로그래밍 그거 먹는건가요?</a></summary>  -->
+<summary>1.1 <a href="#1-1">함수형 프로그래밍 그거 먹는건가요?</a></summary>
 <div markdown="1">
-&nbsp&nbsp&nbsp&nbsp 1.1.1 함수형 자바스크립트를 검색하면 나오는 예제<br/>
-&nbsp&nbsp&nbsp&nbsp 1.1.2 값으로써의 함수와 클로저<br/>
+&nbsp&nbsp&nbsp&nbsp 1.1.1 <a href="#1-1-1">함수형 자바스크립트를 검색하면 나오는 예제</a> <br/>
+&nbsp&nbsp&nbsp&nbsp 1.1.2 <a href="#1-1-2">값으로써의 함수와 클로저</a><br/>
 </div>
 </details>
+
 <details>
-<summary>1.2 함수형 자바스크립트의 실용성 <a href="#1-2">바로가기</a> </summary>
+<summary>1.2 <a href="#1-2">함수형 자바스크립트의 실용성</a> </summary>
 <div markdown="1">
-&nbsp&nbsp&nbsp&nbsp 1.2.1 회원 목록 중 여러 명 찾기<br/>
-&nbsp&nbsp&nbsp&nbsp 1.2.2 for에서 filter로, if에서 predicate로<br/>
-&nbsp&nbsp&nbsp&nbsp 1.2.3 함수형 프로그래밍 관점으로  filter 보기<br/>
-&nbsp&nbsp&nbsp&nbsp 1.2.4 map 함수<br/>
-&nbsp&nbsp&nbsp&nbsp 1.2.5 실행 결과로 바로 실행하기<br/>
-&nbsp&nbsp&nbsp&nbsp 1.2.6 함수를 값으로 다룬 예제의 필요성<br/>
+&nbsp&nbsp&nbsp&nbsp 1.2.1 <a href="#1-2-1">회원 목록 중 여러 명 찾기</a><br/>
+&nbsp&nbsp&nbsp&nbsp 1.2.2 <a href="#1-2-2">for에서 filter로, if에서 predicate로</a><br/>
+&nbsp&nbsp&nbsp&nbsp 1.2.3 <a href="#1-2-3">함수형 프로그래밍 관점으로  filter 보기</a><br/>
+&nbsp&nbsp&nbsp&nbsp 1.2.4 <a href="#1-2-4">map 함수</a><br/>
+&nbsp&nbsp&nbsp&nbsp 1.2.5 <a href="#1-2-5">실행 결과로 바로 실행하기</a><br/>
+&nbsp&nbsp&nbsp&nbsp 1.2.6 <a href="#1-2-6">함수를 값으로 다룬 예제의 필요성</a><br/>
 </div>
 </details>
+
 <details>
-<summary>1.3 함수형 자바스크립트의 실용성 2 <a href="#1-3">바로가기</a></summary>
+<summary>1.3 <a href="#1-3">함수형 자바스크립트의 실용성 2</a></summary>
 <div markdown="1">
-&nbsp&nbsp&nbsp&nbsp 1.3.1 회원 목록 중 한 명 찾기<br/>
-&nbsp&nbsp&nbsp&nbsp 1.3.2 값에서 함수로<br/>
-&nbsp&nbsp&nbsp&nbsp 1.3.3 함수를 만드는 함수와 find, filter 조합하기<br/>
-&nbsp&nbsp&nbsp&nbsp 1.3.4 고차 함수<br/>
-&nbsp&nbsp&nbsp&nbsp 1.3.5 function identity(v) {return v;}, 이건 어디다 쓰는거지?<br/>
-&nbsp&nbsp&nbsp&nbsp 1.3.6 연산자 대신 함수로<br/>
-&nbsp&nbsp&nbsp&nbsp 1.3.7 함수 합성<br/>
+&nbsp&nbsp&nbsp&nbsp 1.3.1 <a href="#1-3-1">회원 목록 중 한 명 찾기</a><br/>
+&nbsp&nbsp&nbsp&nbsp 1.3.2 <a href="#1-3-2">값에서 함수로</a><br/>
+&nbsp&nbsp&nbsp&nbsp 1.3.3 <a href="#1-3-3">함수를 만드는 함수와 find, filter 조합하기</a><br/>
+&nbsp&nbsp&nbsp&nbsp 1.3.4 <a href="#1-3-4">고차 함수</a><br/>
+&nbsp&nbsp&nbsp&nbsp 1.3.5 <a href="#1-3-5">function identity(v) {return v;}, 이건 어디다 쓰는거지?</a><br/>
+&nbsp&nbsp&nbsp&nbsp 1.3.6 <a href="#1-3-6">연산자 대신 함수로</a><br/>
+&nbsp&nbsp&nbsp&nbsp 1.3.7 <a href="#1-3-7">함수 합성</a><br/>
 </div>
 </details>
+
 <details>
-<summary>1.4 함수형 자바스크립트를 위한 기초</summary>
+<summary>1.4 <a href="#1-4">함수형 자바스크립트를 위한 기초</a></summary>
 <div markdown="1">
-&nbsp&nbsp&nbsp&nbsp 1.4.1 일급 함수<br/>
-&nbsp&nbsp&nbsp&nbsp 1.4.2 클로저<br/>
-&nbsp&nbsp&nbsp&nbsp 1.4.3 클로저의 실용 사례<br/>
-&nbsp&nbsp&nbsp&nbsp 1.4.4 클로저를 많이 사용하라!<br/>
-&nbsp&nbsp&nbsp&nbsp 1.4.5 고차 함수<br/>
-&nbsp&nbsp&nbsp&nbsp 1.4.6 콜백 함수라 잘못 불리는 보조 함수<br/>
-&nbsp&nbsp&nbsp&nbsp 1.4.7 함수를 리턴하는 함수와 부분 적용<br/>
+&nbsp&nbsp&nbsp&nbsp 1.4.1 <a href="#1-4-1">일급 함수</a><br/>
+&nbsp&nbsp&nbsp&nbsp 1.4.2 <a href="#1-4-2">클로저</a><br/>
+&nbsp&nbsp&nbsp&nbsp 1.4.3 <a href="#1-4-3">클로저의 실용 사례</a><br/>
+&nbsp&nbsp&nbsp&nbsp 1.4.4 <a href="#1-4-4">클로저를 많이 사용하라!</a><br/>
+&nbsp&nbsp&nbsp&nbsp 1.4.5 <a href="#1-4-5">고차 함수</a><br/>
+&nbsp&nbsp&nbsp&nbsp 1.4.6 <a href="#1-4-6">콜백 함수라 잘못 불리는 보조 함수</a><br/>
+&nbsp&nbsp&nbsp&nbsp 1.4.7 <a href="#1-4-7">함수를 리턴하는 함수와 부분 적용</a><br/>
 </div>
 </details>
+
 <details>
-<summary>1.5 정리</summary>
+<summary>1.5 <a href="#1-5">정리</a></summary>
 <div markdown="1">
 </div>
 </details>
@@ -781,29 +785,226 @@ console.log(map(
 ```
 
 <div id="1-3-3"></div>
+
 #### 1.3.3 함수를 만드는 함수와 find, filter 조합하기
+
+User 등의 커스텀 객체가 아닌 자바스크립트 기본 객체로 만들어진 users를 사용한 예제로 돌아오자. 함수로 함수를 만들어 find 함수와 함께 사용하면 코드를 더욱 간결한게 만들 수 있다.
+
+```javascript
+// 코드 1-25. bmatch1로 predicate 만들기
+// 하나의 key에 대한 value 만 비교할 수 있어서 bmatch1 이다.
+
+function bmatch1(key, val) {
+  return function (obj) {
+    return obj[key] === val;
+  };
+}
+
+console.log(find(users, bmatch1("id", 1))); // { id: 1, name: "ID", age: 32 }
+console.log(find(users, bmatch1("name", "HI"))); // { id: 3, name: "HI", age: 24 }
+console.log(find(users, bmatch1("age", 27))); // { id: 5, name: "JE", age: 27 }
+
+```
+
+bmatch1의 실행 결과는 함수다. key와 val을 미리 받아서 나중에 들어올 obj와 비교하는 익명 함수를 클로저로 만들어 리턴한다. bmatch1을 통해 id, name, age를 비교하는 predicate를 3개 만들어 find에게 넘겼다. bmatch1은 함수를 리턴하기 때문에 filter나 map과도 조합이 가능하다. _인자와 결과만으로 협업_하기 때문에 여기저기 붙이기 쉽다는 장점이 있다.
+
+
+```javascript
+// 코드 1-26. bmatch1 로 함수를 만들어 고차 함수와 협업하기
+
+console.log(filter(users, bmatch1("age", 32)));
+// [{ id: 1, name: "ID", age: 32 },
+//   { id: 3, name: "BJ", age: 32 },
+//   { id: 6, name: "JM", age: 32 }];
+
+console.log(map(users, bmatch1("age", 32)));
+// [true, false, true, false, false, true, false]
+```
+
+`bmatch1`은 하나의 key에 대한 value 만 비교할 수 있다. 여러 개의 key에 해당하는 value들을 비교하는 함수를 만들어 보자.
+
+```javascript
+// 코드 1-27 bmatch
+
+var users = [
+  { id: 1, name: "ID", age: 32 },
+  { id: 2, name: "HA", age: 25 },
+  { id: 3, name: "BJ", age: 32 },
+  { id: 4, name: "PJ", age: 28 },
+  { id: 5, name: "JE", age: 27 },
+  { id: 6, name: "JM", age: 32 },
+  { id: 7, name: "HI", age: 24 },
+];
+
+function bmatch(obj2, val) {
+  if (arguments.length == 2) {
+    obj2 = object(obj2, val);
+  }
+  return function (obj) {
+    return match(obj, obj2);
+  };
+}
+
+function object(key, val) {
+  var obj = {};
+  obj[key] = val;
+  return obj;
+}
+
+function match(obj, obj2) {
+  for (var key in obj2) {
+    if (obj[key] !== obj2[key]) return false;
+  }
+  return true;
+}
+
+function find(list, predicate) {
+  for (var i = 0, len = list.length; i < len; i++) {
+    if (predicate(list[i])) return list[i];
+  }
+}
+
+// [코드 1]
+console.log(
+  match(find(users, bmatch("id", 3)), find(users, bmatch("name", "BJ")))
+);
+// true;
+
+console.log(find(users, bmatch({ name: "JM", age: 32 })));
+// { id: 6, name: 'JM', age: 32
+
+console.log(
+  find(users, function (u) { return u.age == 32 && u.name == "JM"; })
+);
+// { id: 6, name: 'JM', age: 32
+
+console.log(find(users, bmatch({ name: "JM", age: 32 })));
+// { id: 6, name: 'JM', age: 32
+```
+
+👉🏼 코드 뜯어보기<br/>
+
+```javascript
+// [코드 1]
+
+console.log(
+        // A                           // B
+  match(find(users, bmatch("id", 3)), find(users, bmatch("name", "BJ")))
+);
+// match(A,B) A 와 B 를 비교할거야 👉🏼 match 함수로 보냄
+// match 함수로 들어가면 B 의 Object가 가진 key를 순차적으로 돌릴거야.
+// 이 때 Object A 가 갖고 있는 key와 똑같은 key를 B에서 찾으면 true 아니면 false 를 보내줘.
+```
+
+```javascript
+// [코드 1-A]
+
+find(users, bmatch("id", 3))
+// find 함수를 통해서 users 배열 내부의 객체를 하나씩 순서대로 bmatch 에 보내준다.
+// 가장 먼저 users 의 첫번째 값인 { id: 1, name: "ID", age: 32 }를 가지고 bmatch와 비교하게 됨.
+// bmatch를 이용해 우리가 찾고자 하는 값은 users 리스트 내부의 객체 중 id가 3인 객체다.
+```
+
+```javascript
+// bmatch
+
+function bmatch(obj2, val) {
+  if (arguments.length == 2) {
+    obj2 = object(obj2, val);
+  }
+  return function (obj) {
+    return match(obj, obj2);
+  };
+}
+
+// bmatch("id", 3) 이 들어왔고, arguments 가 2개 이므로 if문 내부로 들어간다.
+// object 함수를 통하며 obj2 = { id : 3 } 이 되었다. (이 코드는 쉬워서 생략)
+// obj는 users 리스트에서 순차적으로 들어오는 객체 값 (find 함수를 통해 넘어왔음)
+// 가장 먼저 { id: 1, name: 'ID', age: 32 } 부터 하나씩 순차적으로 obj 에 들어오게 됨
+// obj = { id: 1, name: "ID", age: 32 }
+// obj2 = { id : 3 }
+// 이 두 값을 match 함수로 넘겨준다
+```
+
+```javascript
+// match
+
+function match(obj, obj2) {
+  for (var key in obj2) {
+    if (obj[key] !== obj2[key]) return false;
+  }
+  return true;
+}
+
+// if 문 내에서 id가 3인 값을 못 찾으면 false / 찾으면 true를 내보냄
+// 어떻게?
+// obj의 key의 value 가 obj2의 key의 value와 다르면 false, 같으면 true를 넘겨준다.
+// obj의 key의 value 는 1, 'ID', 32 가 들어오고, 이를 obj2의 key의 value인 3과 비교한다.
+// 같은 값이 없으므로 false를 내보낸다.
+
+// true를 만날 때 까지 users 의 값이 순차적으로 들어오며 비교한다.
+```
+
+여기서 `bmatch` 함수 내부에 `if (arguments.length == 2) obj2 = object(obj2, val);` 이런 조건문을 줌으로서 `(key, val)` 처럼 인자 2개를 보낼 수도 있고, `({ key: val })` 처럼 인자 1개로 만들어 사용할 수도 있다. 여기서 `({ key:val })` 방식을 사용하면 두 가지 이상의 값이 모두 동일한지도 확인할 수 있다. <br/><br/>
+
+이번에는 find를 조금만 고쳐서 값 비교만 하는 `Array.prototype.indexOf` 보다 훨씬 활용도가 높은 findIndex를 만들어보자.
+
+```javascript
+// 코드 1-28. findIndex
+
+function findIndex(list, predicate) {
+  for (var i = 0, len = list.length; i < len; i++) {
+    if (predicate(list[i])) return i;
+  }
+  return -1;
+}
+
+console.log(findIndex(users, bmatch({ name: "JM", age: 32 }))); // 5
+console.log(findIndex(users, bmatch({ age: 36 }))); // -1
+
+```
+
 <div id="1-3-4"></div> 
+
 #### 1.3.4 고차 함수
+
+앞서 구현했던 map, filter, find, findIndex, bvalue, bmatch 같은 함수들은 모두 고차 함수다. 고차 함수란 **함수를 인자로 받거나 함수를 리턴하는 함수**를 말한다. 보통 고차 함수는 함수를 인자로 받아서 필요할 때 실행하거나 클로저를 만들어 리턴한다.<br/>
+
+앞서 만든 map, filter, find, findIndex는 Undersccore.js에도 있는 함수들이다. [Underscore.js](https://underscorejs.org/)는 유명한 함수형 자바스크립트 라이브러리다.
+Underscore.jsdml _.map, _.filter, _.find, _.findIndex는 interatee와 predicate가 사용할 인자를 몇 가지 더 제공한다. 우리가 만든 map, filter, find, findIndex를 _.map, _.filter, _.find, _.findIndex에 가깝게 조금 더 고쳐 보자.
+
+
 <div id="1-3-5"></div> 
+
 #### 1.3.5 function identity(v) {return v;}, 이건 어디다 쓰는 거지?
 <div id="1-3-6"></div> 
+
 #### 1.3.6 연산자 대신 함수로
 <div id="1-3-7"></div>
+
 #### 1.3.7 함수 합성
 
 <div id="1-4"></div>
+
 ### 1.4 함수형 자바스크립트를 위한 기초
 <div id="1-4-1"></div>
+
 #### 1.4.1 일급 함수
 <div id="1-4-2"></div>
+
 #### 1.4.2 클로저
 <div id="1-4-3"></div>
+
 #### 1.4.3 클로저의 실용 사례
 <div id="1-4-4"></div>
+
 #### 1.4.4 클로저를 많이 사용하라!
 <div id="1-4-5"></div>
+
 #### 1.4.5 고차 함수
 <div id="1-4-6"></div>
+
 #### 1.4.6 콜백 함수라 잘못 불리는 보조 함수
 <div id="1-4-7"></div>
+
 #### 1.4.7 함수를 리턴하는 함수와 부분 적용
