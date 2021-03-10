@@ -351,4 +351,137 @@ $('.user-list').append(
 
 <sub id="2021-03-06"><sup>-- 2021-03-06 --</sup></sub>
 
+### 1.4.5 고차 함수
+
+고차 함수란 아래와 같이 함수를 다루는 함수를 말한다.
+
+1. 함수를 인자로 받아 대신 실행하는 함수
+2. 함수를 리턴하는 함수
+3. 함수를 인자로 받아서 또 다른 함수를 리턴하는 함수
+
+함수를 인자로 받아 대신 실행하는 함수는 앞에서도 만들어 보았던 `_.map`, `_.filter`와 같은 함수다.
+
+- 코드 1-48 함수를 인자로 받아 대신 실행하는 함수
+
+```javascript
+function calcWith10(val, func) {
+  return func(10, val);
+}
+function add(a, b) {
+  return a + b;
+}
+function sub(a, b) {
+  return a - b;
+}
+console.log(calcWith10(20, add)); // 30;
+console.log(calcWith10(5, sub)); // 5
+```
+
+위 코드에서 `add`, `sub` 함수는 함수를 인자로 받고나 리턴하지 않기 때문에 일반 일반 함수이며 `calcWith10` 함수는 함수를 받아 내부에서 대신 실행하므로 고차 함수다.
+
+> 함수형 프로그래밍은 함수에 인자를 언제 어떻게 적용할 것인가, 함수를 인자로 언제 어떻게 적용할 것인가, 인자로 받은 함수를 언제 어디서 평가할 것인가에 대한 이야기다.
+
+`calcWith10` 함수는 고차 함수이자 응용형 함수다. 응용형 함수는 함수를 인자로 받아 내부에서 알고 있는 값을 인자로 받은 함수에 적용하는 식으로 이루어진다.
+
+함수형 프로그래밍은 응용형 함수와 고차 함수들을 만들고, 클로저, 인자 합성 등의 함수 기능을 충분히 활용하여 부분 적용, 함수 합성, 함수를 다르는 함수를 만들어 조합하고 연속적으로 실행하고 응용하며 이해하기 쉬운 좋은 함수로 발전시켜 나간다.
+
+- 코드 1-49 함수를 리턴하는 함수
+
+```javascript
+function constant(val) {
+  return function () {
+    return val;
+  };
+}
+var always10 = constant(10);
+console.log(always10()); // 10;
+console.log(always10()); // 10;
+console.log(always10()); // 10;
+```
+
+`constant` 함수는 실행 당시 받았던 10이라는 값을 받아 내부에서 익명 함수를 클로저로 만들어 `val`을 기억하게 만든후 반환한다.
+
+반환된 함수에는 `always10`이라는 이름을 지어 사용하였으며 `always10` 함수는 항상 10을 반환한다.
+
+`constant` 함수처럼 함수를 반환하는 함수도 고차 함수다.
+
+- 코드 1-50 함수를 대신 실행하는 함수를 리턴하는 함수
+
+```javascript
+function callWith(val1) {
+  return function (val2, func) {
+    return func(val1, val2);
+  };
+}
+var callWith10 = callWith(10);
+console.log(callWith10(20, add)); // 30
+var callWith5 = callWith(5);
+console.log(callWith5(5, sub)); // 0
+```
+
+`callWith` 함수는 `val1`을 받아 `val1`을 기억하는 함수를 반환한다.
+
+반환된 함수는 이후에 `val2`과 `func`를 받아 대신 `func` 함수를 실행한다.
+
+`callWith` 함수에 10을 넣어 `callWith10` 함수를 만들 수 있고 5를 넣어 `callWith5`를 만들 수도 있다.
+
+또한 함수를 반환하는 함수를 사용할 경우 아래와 같이 변수에 담지 않고 바로 실행할 수 있다.
+
+- 코드 1-51 괄호 두번
+
+```javascript
+console.log(callWith(30)(20, add)); // 50
+console.log(callWith(20)(20, sub)); // 0
+```
+
+`callWith10` 함수가 아닌 `callWith` 함수가 되어 또 다르게 함수를 사용할 수 있는 가능성이 생겼다.
+
+아래 코드와 같이 숫자가 아닌 값 또한 활용이 가능하다.
+
+- 코드 1-52 `callWith` 활용
+
+```javascript
+console.log(
+  callWith([1, 2, 3])(function (v) {
+    return v * 10;
+  }, _.map)
+); // [10, 20, 30]
+_.get = function (list, idx) {
+  return list[idx];
+};
+var callWithUsers = callWith([
+  { id: 2, name: 'HA', age: 25 },
+  { id: 4, name: 'PJ', age: 28 },
+  { id: 5, name: 'JE', age: 27 },
+]);
+console.log(callWithUsers(2, _.get)); // { id: 5, name: "JE", age: 27 }
+console.log(
+  callWithUsers(function (user) {
+    return user.age > 25;
+  }, _.find)
+); // { id: 4, name: "PJ", age: 28 }
+console.log(
+  callWithUsers(function (user) {
+    return user.age > 25;
+  }, _.filter)
+); // [ { id: 4, name: "PJ'"" age: 28 }, { id: 5, name: "JE", age: 27 } ]
+console.log(
+  callWithUsers(function (user) {
+    return user.age > 25;
+  }, _.some)
+); // true
+console.log(
+  callWithUsers(function (user) {
+    console.log(user);
+    return user.age > 25;
+  }, _.every)
+); // false
+```
+
+위의 코드에서는 변수 선언 대신 함수의 요소 중 하나인 인자를 활용해 더 많은 가능성을 열었다.
+
+<sub id="2021-03-09"><sup>-- 2021-03-09 --</sup></sub>
+
+### 1.4.6 콜백 함수라 잘못 불리는 보조 함수
+
 [[이전으로]](../chapter1-3/README.md) / [[목록으로]](../README.md)
