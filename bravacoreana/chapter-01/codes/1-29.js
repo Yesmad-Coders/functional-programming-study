@@ -26,11 +26,3 @@ _.findIndex = function (list, predicate) {
   }
   return -1;
 };
-
-// 코드 1-30 : 1-29 잠깐 빌려쓰려고 했는데 _ 에서 막혔다.
-
-console.log(
-  _.filter([1, 2, 3, 4], function (val, idx) {
-    return idx > 1;
-  })
-);
