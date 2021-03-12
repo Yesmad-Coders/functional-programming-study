@@ -32,5 +32,4 @@ var _ = {
   },
 };
 
-// How to export?
 module.exports = _;
