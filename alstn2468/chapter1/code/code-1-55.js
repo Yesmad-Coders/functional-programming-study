@@ -14,5 +14,5 @@ function abc(a, b, c) {
   console.log(a, b, c);
 }
 
-var ac = abc.partial(undefined, 'b', undefined);
-ac('a', 'c'); // a b c
+var ac2 = abc.partial(undefined, 'b');
+ac2('a', 'c'); // a c undefined
