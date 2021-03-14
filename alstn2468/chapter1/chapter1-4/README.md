@@ -550,8 +550,154 @@ add10(20); // 30
 
 - 코드 1-54 존 레식의 `partial`
 
+```javascript
+Function.prototype.partial = function () {
+  var fn = this,
+    args = Array.prototype.slice.call(arguments);
+  return function () {
+    var arg = 0;
+    for (let i = 0; i < args.length && arg < arguments.length; i++) {
+      if (args[i] === undefined) args[i] = arguments[arg++];
+    }
+    return fn.apply(this, args);
+  };
+};
+
+function abc(a, b, c) {
+  console.log(a, b, c);
+}
+
+var ac = abc.partial(undefined, 'b', undefined);
+ac('a', 'c'); // a b c
 ```
 
+`partial` 함수는 함수의 인자로 `undefined`를 사용하고 싶은 경우 `undefined`가 인자를 비워 두기 위한 구분자로 사용되어 `undefined`를 미리 적용할 방법이 없다.
+
+또한 초기에 `partial`을 실행할 때 나중에 실제로 실행될 함수에서 사용할 인자의 개수만큼 꼭 미리 채워 실행해야 한다.
+
+- 코드 1-55 `partial`에 인자를 채우지 않았을 경우
+
+```javascript
+var ac2 = abc.partial(undefined, 'b');
+ac2('a', 'c'); // a c undefined
 ```
+
+만약 인자의 개수를 맞춰 미리 채우지 않았다면 위와 같이 동작한다.
+
+`partial`이 가진 제약은 자바스크립트의 유연함을 반영하지 못한다는 점에서 아쉽다.
+
+만약 `add` 함수가 아래와 같이 구현되어 있으면 `partial`과는 합이 더욱 맞지 않는다.
+
+- 코드 1-56 `partial`과 합이 안맞는 `add` 함수
+
+```javascript
+function add() {
+  var result = 0;
+  for (var i = 0; i < arguments.length; i++) {
+    result += arguments[i];
+  }
+  return result;
+}
+
+add(1, 2, 3, 4, 5); // 15
+var add2 = add.partial(undefined, 2);
+add2(1, 3, 4, 5); // 3
+var add3 = add.partial(undefined, undefined, 3, undefined, undefined);
+add3(1, 2, 4, 5); // 15
+add3(50, 50, 50, 50); // 15
+add3(100, 100, 100, 100); // 15
+```
+위 코드에서 `add2` 함수는 3, 4, 5 인자를 무시하게 되며 `add3` 함수는 1, 2, 4, 5를 모두 사용할 수 있게 되지만 코드가 깔끔하지 못하며 `partial` 이후에는 4개 이상의 인자를 사용할 수 없다.
+
+결정적으로는 존 레식이 만든 `partial` 함수는 재사용이 사실상 불가능하다.
+
+한번 `partial` 함수를 통해 만들어진 함수를 실행하고 나면 클로저로 생성된 `args`의 상태를 직접 변경하기 때문에, 다음번에 다시 실행해도 같은 `args`를 바라보고 이전에 적용된 인자가 남는다.
+
+아래와 같이 약간의 코드만 변경하면 두 번 이상 실행해도 정상적으로 동작한다.
+
+- 코드 1-57 실수 고치기
+
+```javascript
+Function.prototype.partial = function () {
+  var fn = this,
+    _args = arguments;
+  return function () {
+    var args = Array.prototype.slice.call(_args);
+    var arg = 0;
+    for (let i = 0; i < args.length && arg < arguments.length; i++) {
+      if (args[i] === undefined) args[i] = arguments[arg++];
+    }
+    return fn.apply(this, args);
+  };
+};
+
+function add() {
+  var result = 0;
+  for (var i = 0; i < arguments.length; i++) {
+    result += arguments[i];
+  }
+  return result;
+}
+
+var add3 = add.partial(undefined, undefined, 3, undefined, undefined);
+add3(1, 2, 4, 5); // 15
+add3(50, 50, 50, 50); // 203
+add3(10, 20, 30, 40); // 103
+```
+
+클로저가 기억하는 변수도 변수이며 값은 변할 수 있으며 이처럼 상태를 변경하는 코드는 위험하다.
+
+더 함수적인 프로그래밍을 하면 위와 같은 실수를 최소화 할 수 있다.
+
+Underscore.js의 `_.partial` 함수는 앞서 소개된 `partial` 함수의 아쉬운 점들이 해결된 부분 적용 함수다.
+
+이 함수들은 라이브러리 내부의 많은 다른 함수들과 코드를 공유하고 있어 복잡하므로 코드 내부가 아닌 동작을 확인한다.
+
+- 코드 1-58 Underscore.js의 `_.partial`
+
+```javascript
+var ac = _.partial(abc, _, 'b');
+ac('a', 'c'); // a b c
+var b = _.partial(abc, 'a', _, 'c');
+b('b'); // a b c
+var ab = _.partial(abc, _, _, 'c');
+ab('a', 'b'); // a b c
+var add2 = _.partial(add, _, 2);
+add2(1, 3, 4, 5); // 15
+add2(3, 5); // 10
+
+function equal(a, b) {
+  return a === b;
+}
+
+var isUndefined = _.partial(equal, undefined);
+isUndefined(undefined); // true
+
+var bj = {
+  name: 'BJ',
+  greet: _.partial(
+    function (a, b) {
+      return a + this.name + b;
+    },
+    '저는 ',
+    '입니다.'
+  ),
+};
+console.log(bj.greet()); // 저는 BJ입니다.
+console.log(bj.greet.call({ name: 'HA' })); // 저는 HA입니다.
+var greetPj = bj.greet.bind({ name: 'PJ' });
+console.log(greetPj()); // 저는 PJ입니다.
+console.log(bj.greet()); // 저는 BJ입니다.
+```
+
+`_.partial`은 적용해 둘 인자를 비워둘 인자를 구분자로 `_`를 사용한다.
+
+`_`는 자바스크렙트에서 사용하는 일반 값이 아니므로 구분자로 사용하기 더 적합하며 표현력도 좋다.
+
+모든 인자의 자리를 미리 확보해 두지 않아도 되며 실행할 때 인자를 많이 사용하든 적게 사용하든 모두 잘 동작한다.
+
+또한 `bind`와 달리 `this`를 적용해 두지 않았으므로 메서드로도 사용이 가능하다.
+
+<sub id="2021-03-14"><sup>-- 2021-03-14 --</sup></sub>
 
 [[이전으로]](../chapter1-3/README.md) / [[목록으로]](../README.md)
