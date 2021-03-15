@@ -125,7 +125,7 @@ console.log(temp_users) // 결과: 3
 // 4
 var names = [];
 for (var i = 0, len = temp_users.length; i < len; i++) {
-<br /> names.push(temp_users[i].name)
+	names.push(temp_users[i].name)
 }
 console.log(names) // 결과: ["ID", "BJ", "JM"]
 ```
