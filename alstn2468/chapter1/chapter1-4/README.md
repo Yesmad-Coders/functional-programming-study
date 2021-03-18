@@ -1,4 +1,3 @@
-
 # 1.4 함수형 자바스크립트를 위한 기초
 
 ## 1.4.1 일급 함수
@@ -700,4 +699,4 @@ console.log(bj.greet()); // 저는 BJ입니다.
 
 <sub id="2021-03-14"><sup>-- 2021-03-14 --</sup></sub>
 
-[[이전으로]](../chapter1-3/README.md) / [[목록으로]](../README.md)
+[[이전으로]](../chapter1-3/README.md) / [[목록으로]](../README.md) / [[다음으로]](../../chapter2/chapter2-1/README.md)
