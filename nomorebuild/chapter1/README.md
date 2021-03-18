@@ -154,7 +154,7 @@ console.log(temp_users.length) // 4
 function filter(list, predicate) {
 	var new_list = [];
 	for (var i = 0, len = list.length; i < len; i++) {
-		if (predicate(list[i])) return new_list.push(list[i])
+		if (predicate(list[i])) new_list.push(list[i])
 	}
 	return new_list;
 }
@@ -563,7 +563,7 @@ findBy함수는 users, posts, comments, products 등 key로 value를 얻을 수 
 - 두 가지 이상의 조건이 필요할 때
 - ===이 아닌 다른 조건으로 찾고자 할 때
 
-다음 코드는 user객체가 매서드로 값을 얻어야 하는 객체일 경우 발생하는 난감한 상황을 보여준다.
+다음 코드는 user객체가 매서드로 값을 얻어야 하는 객체일 경우 발생하는 난감한 상황을 보여준다.<br />
 
 - **Code 1-22** `findBy로 안되는 경우`
 ```js
@@ -598,8 +598,10 @@ function findBy(key, list, val) {
 console.log(findBy('age', users2, 25)); // undefined
 ```
 
-Code 1-22를 보면 user의 나이를 .getAge()로 얻어내야 하기 때문에 findBy함수로는 위 상황을 대응할 수 없음을 알 수 있다.
-이번엔 보다 함수적인 프로그램을 해보자.
+Code 1-22를 보면 user의 나이를 .getAge()로 얻어내야 하기 때문에 findBy함수로는 위 상황을 대응할 수 없음을 알 수 있다.<br />
+이번엔 보다 함수적인 프로그램을 해보자.<br />
+
+### 1.3.2 값에서 함수로
 
 - **Code 1-23** `find`
 ```js
@@ -627,19 +629,19 @@ console.log(
 // HA
 ```
 
-find의 인자로 key와 val 대신 predicate 함수 하나 받았다.
-덕분에 안쪽에서 할 수 있는 일이 정말 많아졌다.
-ageAge와 같은 매서드 실행을 통해 값을 비교하기도 했고, indexOf와 같은 매서드를 통해 이름에 'P'가 포함 되었는지를 알아내기도 했다.
-두가지 조건을 모두 만족하는지 보기도 했으며 연산자 역시 마음대로 사용 가능하다.
+find의 인자로 key와 val 대신 predicate 함수 하나 받았다.<br />
+덕분에 안쪽에서 할 수 있는 일이 정말 많아졌다.<br />
+ageAge와 같은 매서드 실행을 통해 값을 비교하기도 했고, indexOf와 같은 매서드를 통해 이름에 'P'가 포함 되었는지를 알아내기도 했다.<br />
+두가지 조건을 모두 만족하는지 보기도 했으며 연산자 역시 마음대로 사용 가능하다.<br />
 
-인자를 String이나 Number 대신 Function으로 변경한 작은 차이가 매우 큰 차이를 만들었다.
-find는 이제 배열에 어떤 값이 들어 있든 사용할 수 있게 되었디.
-함수형 자바스크립트는 이처럼 다형성이 높은 기법을 많이 사용하며 이러한 기법은 정말 실용적이다.
+인자를 String이나 Number 대신 Function으로 변경한 작은 차이가 매우 큰 차이를 만들었다.<br />
+find는 이제 배열에 어떤 값이 들어 있든 사용할 수 있게 되었디.<br />
+함수형 자바스크립트는 이처럼 다형성이 높은 기법을 많이 사용하며 이러한 기법은 정말 실용적이다.<br />
 
-- 객체지향 프로그래밍: 약속된 이름의 매서드를 대신 실행해 주는 식으로 외부 객체에게 위임하는 방식
-- 함수형 프로그래밍: 보조 함수를 통해 완전히 위임되는 방식
+- 객체지향 프로그래밍: 약속된 이름의 매서드를 대신 실행해 주는 식으로 외부 객체에게 위임하는 방식<br />
+- 함수형 프로그래밍: 보조 함수를 통해 완전히 위임되는 방식<br />
 
-다음은 가튼 함수를 사용하면서 각 데이터에 맞는 보조 함수로 대응하는 사례다.
+다음은 가튼 함수를 사용하면서 각 데이터에 맞는 보조 함수로 대응하는 사례다.<br />
 
 - **Code 1-24** `다형성`
 ```js
@@ -657,3 +659,263 @@ console.log(
 		function(u) { return u.getName(); })); // 매서드 실행으로 변경
 // ["ID", "BJ", "JM"]
 ```
+
+### 1.3.3 함수를 만드는 함수와 find, filter 조립하기
+
+먼저 커스텀 객체가 아닌 자바스크립트 기본 객체인 users를 사용한 예제로 돌아오자.<br />
+함수로 함수를 만들어 find 함수와 함께 사용하면 코드를 더욱 간결하게 할 수있다.<br />
+
+- **Code 1-25** `bmatch1로 predicate 만들기`
+```js
+function bmatch1 (key, val) {
+	return function(obj) {
+		return obj[key] === val
+	}
+}
+
+console.log( find(users, bmatch1("id", 1)) );
+// { id: 1, name: "ID", age: 32 }
+console.log( find(users, bmatch1("name", "HI")) );
+// { id: 7, name: "HI", age: 32 }
+console.log( find(users, bmatch1("age", 27)) );
+// { id: 6, name: "JM", age: 27 }
+```
+
+- bmatch1의 실행 결과는 함수다.
+- key와 val을 미리 받아서 나중에 들어올 obj와 비교하는 익명 함수를 클로저로 만들어 리턴한다.
+- bamtch1은 함수를 리턴하기 때문에 filter나 map과도 조합이 가능하다.
+- 인자와 결과만으로 협업하기 때문에 어디서나 사용하기 쉽다.
+
+- **Code 1-26** `bmatch1로 함수를 만들어 고차 함수와 작업하기`
+```js
+console.log( filter(users, bmatch1("age", 32)) );
+// [{ id: 1, name: "ID", age: 32 },
+//  { id: 3, name: "BJ", age: 32 },
+//  { id: 6, name: "JM", age: 32 }]
+
+console.log( map(users, bmatch1("age", 32)) );
+// [true, false, true, false, false, true, false]
+```
+
+bmatch1은 하나의 key에 대한 value만 비교할 수 있다.<br />
+여러 개의 key에 해당하는 value들을 비교하는 함수를 만들어보자.<br />
+
+- **Code 1-27** `bmatch`
+```js
+function object(key, val) {
+	var obj = {};
+	obj[key] = val;
+	return obj;
+}
+function match(obj, obj2) {
+	for (var key in obj2) {
+		if (obj[key] !== obj2[key]) return false;
+	}
+}
+function bmatch(obj2, val) {
+	if (arguments.length == 2) obj = object(obj2, val);
+	return function(obj) {
+		return match(obj, obj2);
+	}
+}
+
+console.log(
+	match(find(users, bmatch("id", 3)), find(users, bmatch("name", "BJ")))
+);
+// true
+
+console.log(
+	match(users, function(u) { return u.age == 32 && u.name == "JM" })
+);
+// { id: 6, name: "JM", age: 32 }
+
+console.log(
+	match(users, bmatch({ name: "JM", age: 32 }))
+);
+// { id: 6, name: "JM", age: 32 }
+```
+
+이제는 (key, val)와 ({ key: val }) 두 가지 방식으로 사용할 수 있다.<br />
+이처럼 작은 기능을 하는 함수로 쪼개거나 재조합하는 식으로 코드는 발전시키는 것도 좋은 방법이다.<br />
+
+코드를 조금만 수정하여 새로운 함수를 만들어 보자.<br />
+find를 조금만 고치면 값 비교만 하는 Array.prototype.indexOf보다 활용도가 훨씬 높은 findIndex를 만들 수 있다.<br />
+
+- **Code 1-28** `findIndex`
+```js
+function findIndex(list, predicate) { 
+	for (var i = 0, len = list.length; i < len; i++){
+		if (predicate(list[i])) return i;
+	}
+	return -1;
+}
+
+console.log( findIndex(users, bmatch({name: "JM", age: 32 })) );
+// 5
+console.log( findIndex(users, bmatch({ age: 36 )));
+// -1
+```
+
+### 1.3.4 고차 함수
+앞서 우리가 구현했던 함수들은 모두 고차함수다.<br />
+고차 함수란, 함수를 인자로 받거나 함수를 리턴하는 함수를 말한다. 당연히 둘 다 하는 경우도 고차 함수다.<br />
+보통 고차 함수는 함수를 인자로 받아 필요한 때에 실행하거나 클로저를 만들어 리턴한다.<br />
+
+앞서 우리가 만들었던 함수들은 Underscore.js에도 있는 함수들이다.
+Underscore.js의 _.map, _.filter, _.find, _.findIndex는 iteratee와 predicate가 사용할 인자를 몇가지 더 제공한다.<br />
+map, filter, find, findIndex를 Underscore.js의 _.map, _.filter, _.find, _.findIndex에 가깝게 좀 더 고쳐보자.<br />
+
+- **Code 1-29** `인자 늘리기`
+```js
+_.map = function(list, iteratee) {
+	var new_list = [];
+	for (var i = 0, len = list.length; i < len; i++) {
+		new_list.push(iteratee(list[i], i, list));
+	}
+	return new_list;
+}
+_.filter = function(list, predicate) {
+	var new_list = [];
+	for (var i = 0, len = list.length; i < len; i++) {
+		if(predicate(list[i], i, list)) new_list.push(list[i]);
+	}
+	return new_list;
+}
+_.find = function(list, predicate) {
+	for (var i = 0, len = list.length; i < len; i++) {
+		if(predicate(list[i], i, list)) return list[i];
+	}
+}
+_.findIndex = function(list, predicate) {
+	for (var i = 0, len = list.length; i < len; i++) {
+		if(predicate(list[i], i, list)) return i;
+	}
+	return -1
+}
+```
+
+원래는 iteratee(list[i])처럼 한 개의 인자를 넘겼지만 이제는 iteratee(list[i], i, list)처럼 두 개의 인자를 추가했다.<br />
+이제 iteratee와 predicate 함수가 받는 인자가 많아죠 좀 더 다양한 일을 할 수 있게 되었다.<br />
+
+- **Code 1-30** `predicate에서 두 번째 인자 사용하기`
+```js
+console.log(_.filter([1, 2, 3, 4], function(val, idx) {
+	return idx > 1;
+}));
+// [3, 4]
+console.log(_.filter([1, 2, 3, 4], function(val, idx) {
+	return idx % 2 == 0;
+}));
+// [1, 3]
+```
+
+### 1.3.5 function identity(v) { return v; }, 이건 어디다 쓰는 거지?
+정말 쓸모 없어 보이는 함수 하나를 소개한다.<br />
+이것은 Underscore.js에 있는 함수이기도 하다.<br />
+
+- **Code 1-31** `_.identity`
+```js
+_.identity = function(v) { return v; }
+var a = 10;
+console.log( _.identity(a) );
+// 10
+```
+
+함수를 정의하고 실행해 보았다. 보시다시피 받은 인자를 그대로 뱉는 함수이다.<br />
+이미 우리는 a가 10인걸 알고 있는데 이런 아무런 기능이 없는 함수는 언제 사용해야 할까?<br />
+
+- **Code 1-32** `_.identity를 사용한 경우`
+```js
+console.log(_.filter([true, 0, 10, "a", false, null], _.identity));
+// [true, 10, "a"]
+```
+
+_.filter를 _.identity와 사용했더니 Truthy Values(참같은 값, Boolean으로 평가했을 때 true로 평가되는 값들)만 남았다.<br />
+이제 우리는 _.identity를 다른 고차 함수와 함께 조하바는 식으로 아래와 같은 유용한 함수를 만들 수 있다.<br />
+
+**참고**
+> false, undefined, null, 0, -0, 0n, NaN, ""은 모두 Boolean으로 평가했을 때 false다.
+> 이러한 값들을 모두 Falsy Value(거짓 같은 값)이라고 하며 반대의 경우, Truthy Values(참같은 값)이 된다.
+
+- **Code 1-33** `some, every 만들기 1`
+```js
+_.some = function(list) {
+	return !!_.find(list, _.identity);
+};
+_.every = function(list) {
+	return _.filter(list, _.identity).length == list,length;
+}
+console.log(_.some([0, null, 2])); // true
+console.log(_.some([0, null, false])); // false
+
+console.log(_.every([0, null, 2])); // false
+console.log(_.every([{}, true, 2])); // true
+```
+
+- some
+	배열에 들어있는 값 중 하나라도 긍정적인 값이 있으면 true를, 하나도 없다면 false를 리턴한다.
+- every
+	모두 긍정적인 값이어야 true를 리턴한다.
+
+_.some, _.every는 if와 predicate 등과 함께 사용할 때 유용한 점이 있다.<br />
+그런데, Code 1-33의 _.every는 아쉬운 점이 있다. filter를 사용하기 때문에 항상 루프를 돈다.<br />
+이러한 문제점은 쓸모 없어보이지만 함수 두 개를 더 만들면 개선할 수 있다.<br />
+
+### 1.3.6 연산자 대신 함수로
+
+- **Code 1-34** `아주 작은 함수 not, beq`
+```js
+function not(v) { return !v; }
+function beq(a) {
+	return function(b) {
+		return a === b;
+	}
+}
+```
+
+!를 써도 되는데 not 함수가 왜 필요할까? ===로 비교하면 되는데 beq 함수는 왜 필요할까?<br />
+코드들을 하나씩 보면서 이러한 궁금증을 해결해 보자.<br />
+
+- **Code 1-35** `some, every 만들기 2`
+```js
+_.some = function(list) { 
+	return !!_.find(list, _.identity);
+};
+_.every = function(list) {
+	return beq(-1)(_.findIndex(list, not));
+};
+
+console.log(_.some([0, null, 2])); // true
+console.log(_.some([0, null, false])); // false
+console.log(_.every([0, null, 2])); // false
+console.log(_.every([{}, true, 2])); // true
+```
+
+not은 연산자 !가 아닌 함수이기 때문에 _.findIndex와 함께 사용할 수 있다.<br />
+- list의 값 중 하나라도 부정적인 값을 만나면 predicate가 not이므로 true를 리턴하여 해당 번째 i값을 리턴하게 된다.
+- 중간에 부정적인 값을 한번이라도 만나면 루프가 중단되며 부정적인 값이 하나도 없다면 -1을 리턴한다.
+
+_.every는 쓸모 없어 보이는 작은 함수 덕에 로직이 개선되었지만 함수가 가능하면 한가지 일만 하도록 쪼개보자.<br />
+
+- **Code 1-36** `함수 쪼개기`
+```js
+function positive(list) {
+	return _.find(list, _.identity);
+}
+function negativeIndex(list) {
+	return _.findIndex(list, not);
+}
+_.some = function(list) {
+	return not(not(positive(list)));
+}
+_.every = function(list) {
+	return beq(-1)(negativeIndex(list));
+}
+
+console.log(_.some([0, null, 2])); // true
+console.log(_.some([0, null, false])); // false
+console.log(_.every([0, null, 2])); // false
+console.log(_.every([{}, true, 2])); // true
+```
+
+우리는 이러한 과정을 통해 코드도 개선하고 positive와 negativeIndex라는 재사용 가능한 함수도 얻었다.<br />
