@@ -7,8 +7,6 @@
 <h3>Minsu Kim</h3>
 <p>Software Engineer @Devsisters Corp</p>
 
-![Study Status: Started](https://img.shields.io/badge/Study%20Status-Started-blue.svg) ![Study Status: Started](https://img.shields.io/badge/Start%20Date-2021--02--24-23d16b.svg) ![Top Language Badge](https://img.shields.io/github/languages/top/yesmad-coders/functional-programming-study)
-
 ![Github Star Badge](https://img.shields.io/github/stars/yesmad-coders/functional-programming-study?style=social) ![Github Fork Badge](https://img.shields.io/github/forks/yesmad-coders/functional-programming-study?style=social) ![Github Watcher Badge](https://img.shields.io/github/watchers/yesmad-coders/functional-programming-study?style=social)
 
 </div>
@@ -26,7 +24,7 @@
 | 챕터 | 시작 날짜  |  종료 날짜 |             링크             |
 | :--: | :--------: | :--------: | :--------------------------: |
 |  1   | 2020-02-24 | 2020-03-14 | [:link:](chapter1/README.md) |
-|  2   |     -      |     -      | [:link:](chapter2/README.md) |
+|  2   | 2020-03-17 |     -      | [:link:](chapter2/README.md) |
 
 <div align="center">
 

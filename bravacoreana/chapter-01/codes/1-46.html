@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="//code.jquery.com/jquery-3.3.1.min.js"></script>
+    <title>코드 1-46</title>
+  </head>
+
+  <body>
+    <div class="user-list"></div>
+    <script>
+      var _ = {
+        map: function (list, iteratee) {
+          var new_list = [];
+          for (var i = 0, len = list.length; i < len; i++) {
+            new_list.push(iteratee(list[i], i, list));
+          }
+          return new_list;
+        },
+      };
+
+      var users = [
+        { id: 1, name: "HA", age: 25 },
+        { id: 2, name: "PJ", age: 28 },
+        { id: 3, name: "JE", age: 27 },
+      ];
+
+      $(".user-list").append(
+        _.map(users, function (user) {
+          var button = $("<button>").text(user.name);
+          button.click(function () {
+            if (confirm(user.name + "님을 팔로잉 하시겠습니까?")) follow(user);
+          });
+          return button;
+        })
+      );
+      function follow(user) {
+        $.post("/follow", { user_id: user.id }, function () {
+          alert(`이제 ${user.name}님의 소식을 보실 수 있습니다.`);
+        });
+      }
+    </script>
+    <!-- <script src="./data/underscore.js"><script> -->
+  </body>
+</html>
