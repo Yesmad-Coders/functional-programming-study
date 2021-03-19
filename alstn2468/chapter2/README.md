@@ -3,6 +3,7 @@
 ## Table of Contents
 
 - 2.1 객체와 대괄호 다시 보기 [:link:](chapter2-1/README.md)
+- 2.2 함수 정의 다시 보기 [:link:](chapter2-2/README.md)
 
 ## 2장을 시작하는 글
 
