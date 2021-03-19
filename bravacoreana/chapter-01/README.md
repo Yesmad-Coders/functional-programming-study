@@ -1575,22 +1575,248 @@ function callWith(val1) {
 }
 
 var callWith10 = callWith(10);
-console.log(callWith10(20, add)); // 30
+callWith10(20, add); // 30
 
 var callWith5 = callWith(5);
-console.log(callWith5(5, sub)); //0
+callWith5(5, sub); //0
 ```
 
 여기서 `callWith`는 함수를 리턴하는 함수다. val1을 받아서 val1을 기억하는 함수를 리턴했다. 리턴된 그 함수에는 이후에 val2와 func를 받아 대신 func를 실행해 준다. 리턴된 그 함수는 이후에 val2와 func를 받아 대신 func를 실행해 준다. callWith에 10을 넣어 앞서 만들었던 callWith10과 동일하게 동작하는 함수를 만들었다. 이제는 callWith를 이용해 뭐든 만들 수 있다. 함수를 리턴하는 함수를 사용하는 경우 다음처럼 변수에 담지 않고 바로 실행해도 된다.
 
 ```js
 // 코드 1-51. 괄호 두번
+callWith(30)(20, add); //50
+callWith(20)(20, sub); //0
+```
 
+여기에 숫자 대신 값을 넣어도 활용이 가능하다.
+
+
+```js
+// 코드 1-52.
+
+callWith([1, 2, 3])(function (v) { return v * 10; }, _.map); //[10, 20, 30]
+
+_.get = function (list, idx) {
+  return list[idx];
+};
+
+var callWithUsers = callWith([
+  { id: 2, name: "HA", age: 25 },
+  { id: 4, name: "PJ", age: 28 },
+  { id: 5, name: "JE", age: 27 },
+]);
+
+callWithUsers(2, _.get); //{ id: 5, name: 'JE', age: 27 }
+
+callWithUsers(function (user) {
+  return user.age > 25;
+}, _.find);
+// { id: 4, name: 'PJ', age: 28 }
+// find 함수는 조건에 맞는 걸 찾으면 바로 리턴
+
+callWithUsers(function (user) {
+  return user.age > 25;
+}, _.filter);
+//[ { id: 4, name: 'PJ', age: 28 }, { id: 5, name: 'JE', age: 27 } ]
+// filter 함수는 조건에 맞는 리스트를 모두 찾아 배열에 담고, 그 배열을 반환
+
+callWithUsers(function (user) {
+  return user.age > 25;
+}, _.some);
+// true
+
+callWithUsers(function (user) {
+  return user.age > 25;
+}, _.every);
+// true
 ```
 
 <div id="1-4-6"></div>
 
 #### 1.4.6 콜백 함수라 잘못 불리는 보조 함수
+
+콜백 함수를 받아 자신이 해야 할 일을 모두 끝낸 후 결과를 되돌려 주는 함수도 고차 함수다. 보통은 비동기가 일어나는 상황에서 사용되며 콜백함수를 통해 다시 원래 위치로 돌아오기 위해 사용되는 패턴이다. 콜백 패턴은 **끝나면 컨텍스트를 다시 돌려주는 단순한 협업 로직**을 가진다. 컨텍스트를 다시 돌려주는 역할을 가지고 있기 때문에 callback 이라고 함수 이름을 지은 것이다. 콜백 함수는 익명이든 아니든 상관없고 익명 함수가 넘어가는 모양을 가졌다고 해서 반드시 콜백 함수 인 것도 아니다.
+
+`button.click(function() {})` 와 같은 함수도 콜백 함수 보다 이벤트 리스너라고 칭하는 것이 더 적합하다. **함수가 고차 함수에서 쓰이는 역할의 이름으로 불러주면 된다.** `_.each([1,2,3], function() {})`에서의 익명 함수는 콜백이 아니라 `iteratee`이며 `_.filter(users, function() {})` 에서의 익명 함수는 `predicate`다. 콜백 함수는 종료되었을 때 단 한 번 실행되지만 iteratee나 predicate, listener 등은 종료될 때 실행되지 않으며 상황에 따라 여러 벌 실행되기도 하고 각각 다른 역할을 한다.
 <div id="1-4-7"></div>
 
 #### 1.4.7 함수를 리턴하는 함수와 부분 적용
+
+앞서 봤던 `addMaker`,`bvalue`,`bmatch`,`callWith` 같은 함수들은 약속된 개수의 인자를 받아 미리 받아 둔다. 그 후 클로저로 만들어진 함수가 추가적으로 인자를 받아 로직을 완성해 나가는 패턴을 갖는다. 이와 유사한 기법들로 `bind`, `curry`, `partial` 등이 있다. 이러한 기법들은 다음과 같은 공통점을 갖는다.
+
+> 기억하는 인자 혹은 변수가 있는 클로저를 리턴한다.
+
+bind 함수는 this와 인자들이 부분적으로 적용된 함수를 리턴한다. bind의 경우 인자보다는 주로 함수 안에서 사용될 this를 적용해 두는데 더 많이 사용한다. (작가는 아마 this 적용을 스킵ㅂ할 수 없다는 점과 인자의 부분 적용을 왼쪽에서부터 순서대로만 할 수 있다는 점 때문이라고 추측하고 있다.)
+
+```js
+// 코드 1-53. bind
+
+function add(a, b) {
+  return a + b;
+}
+
+var add10 = add.bind(null, 10);
+add10(20);  // 30
+```
+bind는 첫번째 인자로 bind가 리턴할 함수에서 사용될 this를 받는다. 두번째 인자부터 함수에 미리 적용될 인자들이다. 인자를 미리 적용해 두기 위해 this로 사용될 첫번째 인자에 null을 넣은 후, 10을 넣었다.add10과 같이 this를 사용하지 않는 함수이면서 왼쪽에서부터 순서대로마나 인자를 적용하면 되는 상황에서는 원하는 결과를 얻을 수 있다. 
+
+**bind 함수의 아쉬운 점 2가지**
+1. 인자를 왼쪽에서부터 순서대로만 적용할 수 있다.
+2. bind를 한 번 실행한 함수의 this는 무엇을 적용해 두었든 앞으로 바꿀 수 없다.
+
+이런 아쉬움을 보완하고자 개발자들이 bind에서 this가 제외된 버전의 curry를 제안했다. 잘 구현된 사례로는 Lodash 의 _.curry가 있다. `_.curry`는 함수가 필요로 하는 인자의 개수가 모두 채워질 때까지는 실행이 되지 않다가 인자의 수가 모두 채워지는 시점에 실행된다. _.curry는 bind와 달리 this를 제외하고 인자만 적용해 둘 수 있어 좀 더 간결한 코딩이 가능하고, 이후에 this를 적용할 수 있다는 점에서 bind 보다 낫다. 그러나 커링은 인자의 수나 형이 명확하게 정해지지 않은 함수와는 잘 맞지 않는다.<br/>
+<br/>
+
+참고: [커링](https://ko.javascript.info/currying-partials)
+
+bind는 왼쪽에서부터 원하는 만큼의 인자를 지정해 둘 수 있지만 원하는 지점을 비워두고 적용하는 것은 불가능하다. 이것을 개선한 방식이 바로 `partial` 이다.
+
+```js
+// 코드 1-54 존 레시의 partial
+
+Function.prototype.partial = function () {
+  var fn = this,
+    args = Array.prototype.slice.call(arguments); // 1 
+  return function () { // 2
+    var arg = 0;
+    for (var i = 0; i < args.length && arg < arguments.length; i++) // 5
+      if (args[i] === undefined) args[i] = arguments[arg++]; // 6
+    return fn.apply(this, args);
+  };
+};
+
+function abc(a, b, c) {
+  console.log(a, b, c);
+}
+
+var ac = abc.partial(undefined, "b", undefined); // 3
+ac("a", "c"); // 4
+// a b c
+```
+
+1. partial이 실행되면 fn에 자기 자신인 this를 담는다. 여기서 자기 자신은 abc 같은 함수다. args에는 partial이 실행될 때 넘어온 인자들을 배열로 변경하여 args에 담아 둔다.
+2. fn과 args는 리턴된 익명 함수가 기억하게 되므로 지워지지 않는다.
+3. abc.partial을 실행할 때 첫 번째 인자와 세 번째 인자로 넘긴 undefined 자리는 나중에 ac가 실행될 때 채워질 것이다.
+4. ac를 실행하면서 넘긴 'a'와 'c'는
+5. 리턴된 익명 함수의 arguments 에 담겨 있다.
+6. for를 돌면서 미리 받아 두었던 args에 undefined가 들어 있던 자리를 arguments에서 앞에서부터 꺼내면서 모두 채운다. 다 채우고 나면 미리 받아 두었던 fn을 apply로 실행하면서 인자들을 배열로 넘긴다.
+
+사실 partial은 구현이 잘 된 것은 아니다. 함수의 인자로 undefined를 사용하고 싶을 수도 있는데 undefined가 인자를 비워 두기 위한 구분자로 사용되고 있기 때문에, undefined를 미리 적용하고 싶다면 방법이 없다. 또한, 초기에 partial을 시랳앟ㄹ 때 나중에 실제로 실행될 함수에서 사용할 인자의 개수만큼 꼭 미리 채워놓아야만 한다. 만일 개수를 채워 놓지 않으면 아래와 같이 동작한다.
+
+```js
+// 코드 1-55
+
+var ac2 = abc.partial(undefined, "b");
+ac2("a", "c"); // a b undefined
+
+// I get "a b undefined" but the book says "a c undefined" 🤔
+```
+
+이처럼 partial이 가진 제약은 '인자 개수 동적으로 사용하기'나 'arguments 객체 활용'과 같은 자바스크립트의 유연함을 반영하지 못한다는 점에서 특히 아쉽다. 
+
+만일 add라는 함수가 다음과 같이 구현되어 있었다면 partial과는 합이 더욱 맞지 않는다.
+
+```js
+// 코드 1-56.
+
+function add() {
+  var result = 0;
+  for (var i = 0; i < arguments.length; i++) {
+    result += arguments[i];
+  }
+  return result;
+}
+add(1, 2, 3, 4, 5); // 15
+
+var add2 = add.partial(undefined, 2);
+add2(1, 3, 4, 5); // 3
+
+var add3 = add.partial(undefined, undefined, 3, undefined, undefined);
+add3(1, 2, 4, 5); //15
+
+add3(50, 50, 50, 50); // 15 - 버그
+add3(100, 100, 100, 100); // 15 - 버그
+```
+
+위 상황에서 add2는 3,4,5 인자를 무시하게 된다. add3처럼 하면 1,2,4,5를 모두 사용할 수 있게 되지만 `undefined`로라도 인자 개수를 채워놔야 해서 코드가 깔끔하지 못하고, partial 이후에는 역시 4개 이상의 인자를 사용할 수 없다는 단점이 생긴다. 그런데 무엇보다 훨씬 치명적인 문제는 partial로 만든 함수는 재사용이 불가능하다는 것이다. 이것을 보완해보자
+
+```js
+// 코드 1-57. 실수 고치기
+
+Function.prototype.partial = function () {
+  var fn = this,
+    _args = arguments; // 1) 클로저가 기억할 변수에는 원본을 남기기
+  return function () {
+    var args = Array.prototype.slice.call(_args);
+      // 2) 리턴된 함수가 실행될 때마다 복사하여 원본 지키기
+    var arg = 0;
+    for (var i = 0; i < args.length && arg < arguments.length; i++)
+      if (args[i] === undefined) args[i] = arguments[arg++];
+      // 실행 때마다 새로 들어온 인자 체우기
+    return fn.apply(this, args);
+  };
+};
+
+function add() {
+  var result = 0;
+  for (var i = 0; i < arguments.length; i++) {
+    result += arguments[i];
+  }
+  return result;
+}
+
+var add3 = add.partial(undefined, undefined, 3, undefined, undefined);
+
+add3(1, 2, 4, 5); //15
+add3(50, 50, 50, 50); //203
+add3(10, 20, 30, 40); //103
+```
+
+
+
+🔽 gotta study about it.
+
+```js
+// 코드 1-58. Underscore.js의 _.partial
+
+var ac = _.partial(abc, _, "b");
+ac("a", "c");
+
+var b = _.partial(abc, "a", _, "c");
+b("b");
+
+var ab = _.partial(abc, _, _, "c");
+ab("a", "b");
+
+var add2 = _.partial(add, _, 2); 
+add2(1, 3, 4, 5);
+add2(3, 5);
+
+function equal(a, b) {
+  return a === b;
+}
+
+var isUndefined = _.partial(equal, undefined);
+isUndefined(undefined);
+
+var bj = {
+  name: "BJ",
+  greet: _.partial(
+    function (a, b) {
+      return a + this.name + b;
+    },
+    "저는 ",
+    "입니다."
+  ),
+};
+bj.greet();
+
+bj.greet.call({ name: "HA" });
+
+var greetPj = bj.greet.bind({ name: "PJ" });
+greetPj();
+
+bj.greet();
+```
+
