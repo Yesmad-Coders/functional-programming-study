@@ -1,3 +1,5 @@
+const { beq, not } = require("./not-beq");
+
 var _ = {
   map: function (list, iteratee) {
     var new_list = [];
@@ -27,9 +29,11 @@ var _ = {
     }
     return -1;
   },
+
   identity: function (v) {
     return v;
   },
+
   compose: function () {
     var args = arguments;
     var start = args.length - 1;
@@ -39,6 +43,14 @@ var _ = {
       while (i--) result = args[i].call(this, result);
       return result;
     };
+  },
+
+  some: function (list) {
+    return !!_.find(list, _.identity);
+  },
+
+  every: function (list) {
+    return beq(-1)(_.findIndex(list, not));
   },
 };
 
