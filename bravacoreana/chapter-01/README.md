@@ -970,38 +970,624 @@ console.log(findIndex(users, bmatch({ age: 36 }))); // -1
 
 앞서 구현했던 map, filter, find, findIndex, bvalue, bmatch 같은 함수들은 모두 고차 함수다. 고차 함수란 **함수를 인자로 받거나 함수를 리턴하는 함수**를 말한다. 보통 고차 함수는 함수를 인자로 받아서 필요할 때 실행하거나 클로저를 만들어 리턴한다.<br/>
 
-앞서 만든 map, filter, find, findIndex는 Undersccore.js에도 있는 함수들이다. [Underscore.js](https://underscorejs.org/)는 유명한 함수형 자바스크립트 라이브러리다.
-Underscore.jsdml _.map, _.filter, _.find, _.findIndex는 interatee와 predicate가 사용할 인자를 몇 가지 더 제공한다. 우리가 만든 map, filter, find, findIndex를 _.map, _.filter, _.find, _.findIndex에 가깝게 조금 더 고쳐 보자.
+앞서 만든 map, filter, find, findIndex는 `Undersccore.js`에도 있는 함수들이다. [Underscore.js](https://underscorejs.org/)는 유명한 함수형 자바스크립트 라이브러리다.
+Underscore.js은 `_.map`, `_.filter`, `_.find`, `_.findIndex`는 interatee와 predicate가 사용할 인자를 몇 가지 더 제공한다. 우리가 만든 map, filter, find, findIndex를 _.map, _.filter, _.find, _.findIndex에 가깝게 조금 더 고쳐 보자.
 
+
+```javascript
+// 코드 1-29. 인자 늘리기
+
+_.map = function (list, iteratee) {
+  var new_list = [];
+  for (var i = 0, len = list.length; i < len; i++) {
+    new_list.push(iteratee(list[i], i, list));
+  }
+  return new_list;
+};
+
+_.filter = function (list, predicate) {
+  var new_list = [];
+  for (var i = 0, len = list.length; i < len; i++) {
+    if (predicate(list[i], i, list)) new_list.push(list[i]);
+  }
+  return new_list;
+};
+
+_.find = function (list, predicate) {
+  for (var i = 0, len = list.length; i < len; i++) {
+    if (predicate(list[i], i, list)) return list[i];
+  }
+};
+
+_.findIndex = function (list, predicate) {
+  for (var i = 0, len = list.length; i < len; i++) {
+    if (predicate(list[i], i, list)) return i;
+  }
+  return -1;
+};
+```
+
+원래는 `iteratee(list[i])` 처럼 인자를 한 개만 넘겼지만, 이제는 `iteratee(list[i], i, list)` 처럼 총 세 개의 인자를 넘긴다. iteratee와 predicate 함수가 받는 인자가 많아지며 좀 더 다양한 일을 할 수 있게 되었다. `_.filter` 함수의 predicate에게 두 번째 인자로 i가 넘어오는 덕분에 다음과 같은 함수 조합도 가능해졌다.
+
+```javascript
+// 코드 1-30. predicate에서 두 번재 인자 사용하기
+
+console.log(
+  _.filter([1, 2, 3, 4], function (val, idx) { return idx > 1; })
+); // [3,4]
+
+console.log(
+  _.filter([1, 2, 3, 4], function (val, idx) { return idx % 2 == 0; })
+); // [1,3]
+```
 
 <div id="1-3-5"></div> 
 
 #### 1.3.5 function identity(v) {return v;}, 이건 어디다 쓰는 거지?
+
+정말 쓸모 없어 보이는 함수가 있다. 코드 1-31이 그것인데, 이것은 Underscore.js 라이브러리에도 있는 함수다.
+
+```javascript
+// 코드 1-31. _.identity
+
+_.identity = function (v) { return v; };
+var a = 10;
+console.log(_.identity(a)); // 10
+```
+
+이 함수는 그냥 받은 인자를 그대로 내뱉는 함수다. 이런 아무런 기능이 없는 함수는 언제 써야 할까?
+
+```javascript
+// 코드 1-32. predicate로 _.identity 를 사용한 경우
+console.log(_.filter([true, 0, 10, "a", false, null], _.identity));
+// [true, 10, 'a']
+```
+
+`_.filter`와 `_.identity`를 함께 사용했더니 **Truthy Values** 만 남았다. 이렇게 놓고 보니 `_.identity` 함수가 좀 더 실용적으로 보이지 않는가? `_.identity`를 다른 고차 함수와 조합하는 식으로 코드 1-33과 같은 유용한 함수들을 만들 수 있다.
+
+
+> 🤚🏼 잠깐만요!
+> false, undefined, null, 0, NaN, "" 은 모두 Boolean 으로 평가했을 때 false다. 따라서 이것들을 모두 Falsy values 라고 부른다. Falsy values 가 아닌 모든 값들은 Truthy values다.
+> _.falsy = function(v) { return !v; }
+> _.truthy = function(v) { return !!v; }
+
+
+```javascript
+// 코드 1-33. some, every 만들기 1
+
+_.some = function (list) {
+  return !!_.find(list, _.identity);
+};
+
+_.every = function (list) {
+  return _.filter(list, _.identity).length == list.length;
+};
+
+console.log(_.some([0, null, 2])); // true
+console.log(_.some([0, null, false])); // false
+
+console.log(_.every([0, null, 2])); // false
+console.log(_.every([{}, true, 2])); // true
+```
+
+여기서 `_.some`은 배열에 들어 있는 값 중 하나라도 true 가 있으면 true를 반환하고, 하나도 없으면 false 를 리턴한다. `_.every`는 모두 true 여야 true를 리턴한다. `_.some`, `_.every`는 if나 predicate 등과 함께 사용할 때 매우 유용하다. 그런데 코드 1-33에서 아쉬운 점이 하나 있다. filter를 사용했기 때문에 항상 루프 끝까지 돌게 된다는 것이다. 함수를 두 개 더 만들면 로직을 개선할 수 있다.
+
+
 <div id="1-3-6"></div> 
 
 #### 1.3.6 연산자 대신 함수로
+
+```javascript
+// 코드 1-34. 아주 작은 함수 not, beq
+
+function not(v) { return !v; }
+
+function beq(a) {
+  return function (b) {
+    return a === b;
+  };
+}
+```
+
+`!` 를 써도 되는데 왜 not 함수가 필요할까? `===`로 비교하면 되는데 왜 beq 함수가 필요할까? 얘들을 굳이 만들어야 하나? 하나하나 뜯어보면서 궁금증을 해결해 보자.
+
+
+```javascript
+// 코드 1-35. some, every 만들기 2
+
+_.some = function (list) {
+  return !!_.find(list, _.identity);
+};
+
+_.every = function (list) {
+  return beq(-1)(_.findIndex(list, not));
+};
+
+console.log(_.some([0, null, 2])); // true
+console.log(_.some([0, null, false])); // false
+console.log(_.every([0, null, 2])); // false
+console.log(_.every([{}, true, 2])); // true
+```
+
+not은 연산자 `!` 가 아닌 함수이기 때문에 `_.findIndex`와 함께 사용할 수 있다. list의 값 중 하나라도 부정적인 값을 만나면 predicate가 not 이므로 true를 리턴하여 해당 번째 i 값을 리턴하게 된다. 중간에 부정적인 값을 한 번이라도 만나면 루프가 중단된다. 만일 부정적인 값이 하나도 없다면 -1 을 리턴한다. -1이 나왔다면, beq(-1) 이 리턴한 함수에 인자로 넣어 true가 나올 것이고, 이것은 `_.every`의 리턴값이 된다. findIndex 로 부정적인 값을 하나도 찾지 못했다는 얘기는 결국 모두 긍정적인 값이라는 얘기가 된다.
+
+`_.every`는 쓸모 없어 보이지만 작은 함수 not 덕분에 로직이 개선됐다. 여기서 가능한 함수가 한 가지 일만 하도록 함수를 조금 더 쪼개보자.
+
+```javascript
+// 코드 1-36. 함수 쪼개기
+
+function positive(list) {
+  return _.find(list, _.identity);
+}
+
+function negativeIndex(list) {
+  return _.findIndex(list, not);
+}
+
+_.some = function (list) {
+  return not(not(positive(list)));
+};
+
+_.every = function (list) {
+  return beq(-1)(negativeIndex(list));
+};
+
+console.log(_.some([0, null, 2])); // true
+console.log(_.some([0, null, false])); // false
+console.log(_.every([0, null, 2])); // false
+console.log(_.every([{}, true, 2])); // true
+```
+
+좀 더 깔끔해졌고, `positive`와 `negativeIndex`라는 재사용 가능한 함수도 얻었다!
+
 <div id="1-3-7"></div>
 
 #### 1.3.7 함수 합성
 
+함수를 쪼갤수록 함수 합성은 쉬워진다. Underscore.js에 `_.compose` 라는 함수가 있따. 이 `_.compose`는 오른쪽 함수의 결과를 바로 왼쪽의 함수에게 전달한다. 그리고 해당 함수의 결과를 다시 자신의 왼쪽 함수에게 전달하는 고차 함수다. 코드 1-37은 Underscore.js 사이트에 있는 예제와 Underscore.js 내부의 코드다. <br/>
+`arguments`, `apply`, `call` 객체 등이 익숙하다면 `_.compose` 함수의 코드를 읽는 것이 크게 어렵지 않을 것이다. arguments 객체는 함수형 자바스크립트를 다루다 보면 자주 만나게 된다. `arguments` 객체에 대해서는 2장에서 자세히 다룰 것이므로 가볍게 봐도 좋다 :)
+
+```javascript
+// underscore.js 중
+
+_.compose = function () {
+  var args = arguments;
+  var start = args.length - 1;
+  return function () {
+    var i = start;
+    var result = args[start].apply(this, arguments);
+    while (i--) result = args[i].call(this, result);
+    return result;
+  };
+};
+
+var greet = function (name) {
+  return "hi:" + name;
+};
+
+var exclaim = function (statement) {
+  return statement.toUpperCase() + "!";
+};
+
+var welcome = _.compose(greet, exclaim);
+
+console.log(welcome("moe"));  // hi:MOE!
+```
+
+welcome을 실행하면 먼저 exclaim을 실행하면서 "moe" 인자를 넘겨준다. exclaim의 결과는 대문자로 변환된 "MOE!" 이고 그 결과는 다시 greet의 인자로 넘어가 최종 결과로 "hi:MOE!"를 리턴한다. 이번엔 `_.compose`를 이용해 `_.some`과 `_.every`를 만들어보자.
+
+```javascript
+// 코드 1-38. _.compose로 함수 합성하기
+
+/* 원래 코드 
+_.some = function(list) {
+    return not(not(positive(list)));
+};
+_.every = function(list) {
+    return beq(-1)(negativeIndex(list));
+}
+
+*/
+_.some = _.compose(not, not, positive);
+_.every = _.compose(beq(-1), negativeIndex);
+```
+
+`_.compose`을 써서 `_.some`, `_.every`를 더 간결하게 표현했다. 맨 오른쪽의 함수가 인자를 받아 결과를 만들고 결과는 다시 그 왼쪽의 함수에게 인자로 전달된다. 오른쪽에서부터 왼쪽으로 연속적으로 실행되어 최종 결과를 만든다.
+
+값 대신 함수로 for와 if 대신 고차 함수와 보조 함수로, 연산자 대신 함수로, 함수 합성 등 앞서 설명한 함수적 기법들을 사용하면 간결한 코드와 함수명으로 로직을 더 명확히 전달할 수 있다.
+
+짧고 읽기 좋은 코드도 중요한 가치지만 좀 더 고상한 이점이 있다. 인자 선언이나 변수 선언이 적어진다는 것이다. 코드에 인자와 변수가 등장하지 않고 함수의 내부({statement})가 보이지 않는다는 새로운 상황도 생기지 않는다. 새로운 상황이 생기지 않는다는 것은 계발자가 예측하지 못할 상황이 없다는 말이다!🥳 에러 없는 함수들이 인자와 결과에 맞게 잘 조합되어 있다면 전체의 결과 역시 에러가 날 수 없다. 
 <div id="1-4"></div>
 
 ### 1.4 함수형 자바스크립트를 위한 기초
+
+함수를 잘 다루려면 함수와 관련된 개념들과 관련된 몇 가지 기능들에 대해 잘 알아야 하는데 이를테면 **일급 함수, 클로저, 고차함수, 콜백 패턴, 부분 적용, arguments 객체 다루기, 함수 객체의 메서드(bind, call, apply)** 등이 있다. 자바스크립트에서의 함수는 대충 익히고 넘기기엔 너무나 중요하다! 특히 소프트웨어 규모가 커지고 복잡도가 높아질수록 함수의 중요성은 더욱 커진다. 그러니.. 열심히 공부해보자 🥶
+
+
 <div id="1-4-1"></div>
 
 #### 1.4.1 일급 함수
+
+자바스크립트에서 함수는 일급 객체이자 일급 함수다. 자바스크립트에서 객체는 일급 객체다. 여기서 `일급`은 값으로 다룰 수 있다는 의미로 다음의 조건을 만족해야 한다.
+
+> "일급" 을 만족하기 위한 조건
+> - 변수에 담을 수 있다.
+> - 함수나 메서드의 인자로 넘길 수 있다.
+> - 함수나 메서드에서 리턴할 수 있다.
+
+자바스크립트에서 모든 값은 일급이다. 자바스크립트에서 모든 객체는 일급 객체이며 함수도 객체이자 일급 객체다. 그렇다면 일급 함수는 무엇일까? 보통 일급함수는 아래와 같은 추가적인 조건을 더 만족한다.
+
+> "일급 함수"를 만족하기 위한 조건
+> - 아무 때나(런타임에서도) 선언이 가능하다.
+> - 익명으로 선언할 수 있다.
+> - 익명으로 선언한 함수도 함수나 메서드의 인자로 넘길 수 있다.
+
+
+자바스크립트의 함수는 위 조건을 모두 만족하는 일급 함수다!
+
+```javascript
+// 코드 1-39
+
+// 1
+function f1() {
+  var a = typeof f1 == "function" ? f1 : function () {};
+}
+
+// 2
+function f2() {
+  return function () {};
+}
+
+// 3
+(function (a, b) { return a + b; })(10, 5);
+
+function callAndAdd(a, b) {
+  return a() + b();
+}
+
+// 4
+callAndAdd(function () { return 10; },function () { return 5; });
+```
+
+1. f1은 함수를 값으로 다룰 수 있음을 보여준다. typeof 연산자를 사용해 'function' 인지 확인하고 변수 a에 f1을 담고 있다.
+2. f2는 함수를 리턴한다.
+3. a와 b를 더하는 익명 함수를 선언했고, a, b에 각각 10, 5를 전달해 즉시 실행했다.
+4. callAndAdd를 실행하면서 익명 함수들을 선언했고 바로 인자로 사용되었다. callAndAdd는 넘겨받은 함수 둘을 실행하여 결과들을 더한다.
+<br/>
+<br/>
+함수는 언제든지 선언할 수 있고 인자로 사용할 수 있다. 또한 함수는 인자로 받은 함수를 실행할 수 있고, 함수를 리턴할 수 있다. 메서드를 가진 객체와는 다르게 자기 자신이 곧 기능인 함수는 쉬운 참조, 쉬운 전달, 쉬운 실행이 가능하다. 함수로 기능을 동작시키는 것은, 만들어 둔 클래스의 인스턴스를 생성하고 다루면서 기능을 동작시키는 것보다 간단하고 쉽다. 
+
 <div id="1-4-2"></div>
 
 #### 1.4.2 클로저
+
+클로저는 자바스크립트에서 매우 주요하며 계속해서 활용되기 때문에 정확한 이해가 필요하다! 스코프에 대한 개념을 잘 알고 있다면 이해가 좀 더 쉬울 것이다. 스코프란 변수를 어디에서 찾을지를 정한 규칙으로, 여기서 다루는 스코프는 함수 단위의 변수 참조에 대한 것이다. 
+
+함수는 변수 참조 범위를 결정하는 중요한 기준이다. 함수가 중첩되어 있다면 스코프들 역시 중첩되어 생겨난다.
+
+> 클로저는 자신이 생성될 때의 환경을 기억하는 함수다.
+
+다시 말해, _클로저는 자신의 상위 스코프의 변수를 참조할 수 있다_ 고 말할 수 있다. 맞는 말이지만 오해의 소지가 많은 표현이다. 좀 더 정확한 정의는 다음과 같을 것이다.
+
+> 클로저는 자신이 생성될 때의 스코프에서 알 수 있었던 변수를 기억하는 함수다.
+
+자바스크립트의 모든 함수는 
+- 글로벌 스코프에 선언되거나 함수 안에서 선언된다.
+- 상위 스코프를 가진다.
+- 자신이 정의되는 순간의(정의되는 곳의) 실행 컨텍스트 안에 있다.
+- 어느 곳에서 어떤 방법으로 생성하든 자신이 생성될 때의 환경을 기억할 수 있다.
+
+그렇다면 모든 함수는 곧 클로저일까?
+
+관점에 따라 그렇게 해석하거나 정의할 수도 있다. 그러나 함수가 의미적으로나 실제적으로나 진짜 클로저가 되기 위한 가장 중요한 조건은 다음과 같다.
+
+> 클로저로 만들 함수가 myfn 이라면, myfn 내부에서 사용하고 있는 변수 중에 myfn 내부에서 선언되지 않은 변수가 있어야 한다. 그 변수를 a 라고 한다면, a라는 이름의 변수가 myfn을 생성하는 스코프에서 선언되었거나 알 수 있어야 한다. 
+
+
+```javascript
+// 코드 1-40
+
+function parent() {
+  var a = 5;
+  function myfn() {
+    console.log(a);
+  }
+  // ... 생략
+}
+
+function parent2() {
+  var a = 5;
+  function parent1() {
+    function myfn() {
+      console.log(a);
+    }
+    // ... 생략
+  }
+  // ... 생략
+}
+```
+
+여기서 `parent`와 `parent2`의 myfn에서는 a라는 변수를 선언하지 않았지만 사용하고 있다. parent의 변수 a는 myfn을 생성하는 스코프에서 정의되었고 parent2의 변수 a는 myfn을 생성하는 스코프의 상위 스코프에 정의되었다. 
+
+위와 같은 조건을 충족시키지 않는다면 그 함수가 아무리 함수 안에서 선언되었더라도 일반 함수와 다를게 없다. `클로저가 기억할 환경`이라는 거은 외부의 변수들(혹은 외부의 함수들)밖에 없기 때문이다. 또한 자신의 상위 스코프에서 알 수 있는 변수를 자신이 사용하고 있지 않다면 그 환경을 기억할 필요가 없다.
+
+글로벌 스코프를 제외한 외부 스코프에 있었던 변수 중 클로저 혹은 다른 누군가가 참조하고 있지 않는 모든 변수는 실행 컨텍스트가 끝난 후 가비지 컬렉션 대상이 된다. 어떤 함수가 외부 스코프의 변수를 사용하지 않았고, 그래서 외부 스코프 환경이 가비지 컬렉션 대상이 된다면 그 함수는 클로저라고 보기 어렵다.
+
+클로저를 다시 재정의 해보면 다음과 같다.
+
+> 클로저는 자신이 생성될 때의 스코프에서 알 수 있었던 변수 중에서 언젠가 자신이 실행될 때 사용할 변수들만 기억하여 유지시키는 함수다.
+
+예제를 통해 클로저에 대해 조금 더 자세히 알아보자.
+
+```javascript
+// 코드 1-41.
+
+var a = 10;
+var b = 20;
+function f1() {
+  return a + b;
+}
+f1(); // 30
+```
+
+이 예제에서 f1은 클로저일까? **NOPE!** 일단 f1은 클로저처럼 외부 변수를 참조하여 결과를 만든다. 게다가 상위 스코프의 변수를 사용하고 있으므로 조건을 충족한다. 그런데 왜 클로저가 아닐까??
+
+글로벌 스코프에서 선언된 모든 변수는 그 변수를 사용하는 함수가 있는지 없는지와 관계없이 유지된다. 즉, `a`와 `b` 변수가 **f1에 의해 사라지지 못하는 상황이 아니므로** f1은 클로저가 아니다.
+
+그렇다면 클로저는 "함수 안에서 함수가 생성될 때" 만 생성된다고 할 수 있을까? 그렇지도 않다. 웹 브라우저에서는 함수 내부가 아니라면 모두 글로벌 스코프지만, 요즘 자바스크립트에서는 함수 내부가 아니면서 글로벌 스코프도 아닌 경우도 있다. `Node.js` 가 그렇다. Node.js에서 사용하는 js 파일 하나의 스코프는 글로벌 스코프가 아니다. 그러므로 만일 해당 예제와 동일한 코드가 브라우저가 아닌 Node.js에서 사용할 특정 js 파일에 작성되어 있었다면 f1은 클로저가 맞다.
+
+```javascript
+// 코드 1-42.
+
+function f2() {
+  var a = 10;
+  var b = 20;
+  function f3(c, d) {
+    return c + d;
+  }
+  return f3;
+}
+var f4 = f2();
+f4(5, 7); // 12
+```
+
+코드 1-42에 클로저가 있을까?? 특히 f3처럼 함수 안에서 함수를 리턴하면 클로저처럼 보인다. 하지만 이 코드의 f4에 담긴 f3(리턴된 함수) 도 클로저가 아니다. 
+
+f3은 f2 안에서 생성되었고 f3 바로 위에는 a, b 라는 지역 변수도 있다. 하지만 f3 안에서 사용되고 있는 변수는 c,d 이고 두 변수 모두 f3에서 정의되었다. f3 자신이 생성될 때의 스코프가 알고 있는 변수 a,b는 사용하지 ㅇ낳았다. 그러므로 f3이 기억해야 할 변수는 하나도 없다! f3 자신이 스스로 정의한 c,d는 f3이 실행되고 나면 없어져 버린다. 다시 실행되면 c,d를 생성하고 리턴 후 변수(c,d)는 사라진다. f3은 기억해 두는 환경도 변수도 없다. 👉🏼 클로저가 아님!
+
+f2에서 정의된 a,b는 f2에서만 쓰였다. f2 안에 f3가 있지만 f3에서는 a,b가 쓸모가 없다. 즉, a,b는 기억될 필요가 없으므로 f2가 실행되고 나면 사라진다. 
+
+f3가 클로저가 아닌 것은 너무나 당연한 일이다. 만일 f3가 클로저라면 거의 모든 함수가 클로저일테고, 가비지 컬렉터가 메모리를 해제할 수 있는 대상도 없을 것이다. 
+
+```javascript
+// 코드 1-43.
+
+function f4() {
+  var a = 10;
+  var b = 20;
+  function f5() {
+    return a + b;
+  }
+  return f5();
+}
+f4(); // 30
+```
+
+그러면 코드 1-43에는 클로저가 있을까? 정확히는 `있었다` 가 맞다. 🤯 결과적으로는 클로저는 없다고 볼 수 있다.
+
+f4 실행 ➡️ a,b 할당 ➡️ f5 정의<br/>
+f5에서는 자신이 생성된 환경을 기억하는 클로저가 됨! 그런데 f4의 마지막 라인에서 f5를 실행해 리턴한다. 결국 f5를 참조하고 있는 곳이 없으므로 f5는 사라지고, f5가 사라지면 a,b도 사라질 수 있기에 클롲는 f4가 실행되는 동안에만 생겼다가 사라진다.
+
+```javascript
+// 코드 1-44
+
+function f6() {
+  var a = 10;
+  function f7(b) {
+    return a + b;
+  }
+  return f7;
+}
+
+var f8 = f6();
+
+f8(20); // 30
+f8(10); // 20
+```
+
+여기서 `f7`은 진짜 클로저다. 이제 a는 사라지지 않는다. f7이 a를 사용해야 하므로 a를 기억해야 하고, f6()을 실행해 리턴되는 f7이 f8에 담겼기 때문에 클로저가 되었다. 원래대로라면 f6의 지역 변수는 모두 사라져야 하지만 f6의 실행이 끝나도 f7이 a를 기억하는 클로저가 되었기 때문에 a는 사라지지 않으며, f8을 실행할 때마다 새로운 변수인 b가 함께 사용되어 결과를 만든다. (만약 f6의 실행 결과인 f7을 f8에 담지 않았다면 f7은 클로저가 되지 않는다.)
+
+여기서 메모리 누수가 있을까? 그렇지 않다. 메모리가 해제되지 않는 것과 메모리 누수는 다르다. 메모리 누수는 메모리가 해제되지 않을 때 일어나는 것은 맞지만, 위 상황은 개발자가 의도한 상황이기 때문에 메모리 누수라고 할 수는 없다. 
+
+```js
+// 코드 1-45
+
+function f9() {
+  var a = 10;
+  var f10 = function (c) {
+    return a + b + c;
+  };
+  var b = 20;
+  return f10;
+}
+
+var f11 = f9();
+f11(30); // 60
+```
+
+f10에는 익명함수를 담았다. f10이 생성되기 딱 이전 시점에는 b가 20으로 초기화되지 않았다. 클로저는 자신이 생성하는 스코프의 모든 라인, 어느 곳에서 선언된 변수든지 참조하고 기억할 수 있다. 그리고 그것은 변수이기에 클로저가 생성된 이후 언제라도 그 값은 변경될 수 있다. 
+
+클로저는 **자신이 생성될 "때"의 스코프에서 알 수 있었던 변수를 기억하는 함수**라고 했는데 이 예제는 그것을 잘 보여주는 예제다.
+
+- 때가 조금 길다
+- 스코프에서 알 수 있었던
+  
+
+"때가 조금 길다" 고 했던 이유는, "때"가 함수가 생성되는 라인이나 그 이전이 아니라, **그 스코프가 실행되고 있는 컨텍스트 전체**를 말하기 때문이다. 여기서 그 스코프는 함수일 수 있다. 만일 함수라면 함수가 실행될 때마다 그 스코프의 환경은 새로 만들어진다. 클로저 자신이 생성될 `때의 스코프를 알 수 있었던`의 의미는 `클로저가 생성되고 있는 이번 실행 컨텍스트에서 알 수 있었던` 이라는 의미다. `이번 실행 컨텍스트` 라고 표현한 것은 그것이 계속 다시 발생하는 실행 컨텍스트이기 때문이고, 자신의 부모 스코프의 실행 컨텍스트도 특정 시점 안에 있는 것이기 때문에 `있었던`이라는 시점을 담은 표현으로 설명했다.
+
+다시 한 번 클로저를 조금 더 풀어서 정의 해보자.
+
+> 클로저는 자신이 생성되는 스코프의 실행 컨텍스트에서 만들어졌거나 알 수 있었던 변수 중 언젠가 자신이 실행될 때 사용할 변수들만 기억하는 함수다. 클로저가 기억하는 변수의 값은 언제든지 남이나 자신에 의해 변경될 수 있다.
+
 <div id="1-4-3"></div>
 
 #### 1.4.3 클로저의 실용 사례
+
+클로저가 정말 강력하고 실용적으로 쓰일 수 있는 상황
+- 이전 상황을 나중에 일어날 상황과 이어 나갈 때
+  - 이벤트 리스너로 함수를 넘기기 이전에 알 수 있었던 상황들을 변수로 담아 클로저로 만들어 기억해 두면, 이벤트가 발생되어 클로저가 실행되었을 때 기억해 두었던 변수들로 이전 상황을 이어갈 수 있다. 콜백 패턴에서도 마찬가지로 콜백으로 함수를 넘기기 이전 상황을 클로저로 만들어 기억해두는 식으로 이전의 상황들을 이어갈 수 있다. 
+- 함수로 함수를 만들거나 부분 적용을 할 때
+
+```js
+// 코드 1-46. 팔로잉 버튼
+
+var users = [
+  { id: 1, name: "HA", age: 25 },
+  { id: 2, name: "PJ", age: 28 },
+  { id: 3, name: "JE", age: 27 },
+];
+$(".user-list").append(
+  _.map(users, function (user) {  // 1. 이 함수는 클로저가 아니다
+    var button = $("<button>").text(user.name); // 2.
+    button.click(function () {  // 3. 계속 유지되는 클로저 (내부에서 user를 사용했다)
+      if (confirm(user.name + "님을 팔로잉 하시겠습니까?")) follow(user);  // 4.
+    });
+    return button; // 5.
+  })
+);
+function follow(user) {
+  $.post("/follow", { user_id: user.id }, function () { // 6. 클로저가 되었다가 없어지는 클로저
+    alert(`이제 ${user.name}님의 소식을 보실 수 있습니다.`);
+  });
+}
+```
+<!-- lemmi skip this one to work for now. gonna figure it out later 🙈 -->
+
+1. 1과 5에서 users 객체로 `_.map`을 실행하면서 user마다 버튼으로 바꿔준 배열을 리턴하고 있다. 그렇게 만들어진 배열은 바로 `$('.user-list').append` 에 넘겨져 화면에 그려진다.
+2. 2에서 버튼을 생성하면서 user.name을 새겼다. `_.map`이 보조 함수를 user마다 각각 실행해 주기 때문에 user 하나에 대한 코드만 생각하면 된다.
+3. 3에서는 클릭 이벤트를 달면서 익명 함수를 생성했고, 그 함수는 클로저가 된다. 
+4. 3에서 생성된 클로저는 1의 익명 함수의 실행 컨텍스트에서의 환경을 기억한다. 그 중 기억하고 있는 외부 변수는 내부에서 사용하고 있는 user 뿐이다. 3에서 클로저를 만들 때의 컨텍스트는 해당 번째 user를 알고 있었다. 그 user는 외부에서 인자로 선언되었고 3의 내부에서 사용하기 때문에 클로저가 되어 기억하고 유지시킨다. 나중에 클릭을 통해 이 클로저가 실행되면 자신이 기억하고 있던 user를 이용해 1을 실행했을 때의 흐름을 이어간다.
+5. 4에서 `user.name`으로 컨펌을 띄우고 기억해 둔 user를 follow 함수에게 넘긴다. 
+6. follow 함수는 user를 받는다. 어떤 버튼을 클릭하든지 그에 맞는 유저가 넘어온다.
+7. 6에서는 `$.post`를 실행하면서 콜백 함수로 클로저를 만들어 넘겼다. 이 클로저는 방금 follow가 실행되었을 때의 환경을 기억한다. 서버가 응답을 주어 콜백 함수가 실행되고 나면 기억하고 있던 user를 통해 흐름을 이어 간다.
+
+여기서 `_.map` 과 같은 함수는 동시성이 생길 만한 상황이더라도 상태 변화로 인한 부수 효과로부터 자유롭고 편하게 프로그래밍 할 수 있도록 해 준다. 
+
+```js
+// 코드 1-47.
+
+// 1. 흔한 클로저 실수 - 어떤 버튼을 클릭해도 JE
+var buttons = [];
+for (var i = 0; i < users.length; i++) {
+  var user = users[i];
+  buttons.push(
+    $("<button>")
+      .text(user.name)
+      .click(function () {
+        console.log(user.name);
+      })
+  );
+}
+$(".user-list").append(buttons);
+
+// 2. 절차지향적 해결 - 어차피 함수의 도움을 받아야 함, 각각 다른 이름이 잘 나옴
+var buttons = [];
+for (var i = 0; i < users.length; i++) {
+  var user = users[i];
+  buttons.push(
+    $("<button>")
+      .text(user.name)
+      .click(function () {
+        console.log(user.name);
+      })
+  )(users[i]);
+}
+$(".user-list").append(buttons);
+
+// 3. 함수적 해결
+$(".user-list").append(
+  _.map(users, function (user) {
+    return $("<button>")
+      .text(user.name)
+      .click(function () {
+        console.log(user.name);
+      });
+  })
+);
+```
 <div id="1-4-4"></div>
 
 #### 1.4.4 클로저를 많이 사용하라!
+
+클로저는 자바스크립트에서 절차지향 프로그래밍, 객체지향 프로그래밍, 함수형 프로그래밍 모두를 지탱하는 아주 중요한 기능이자 개념이다. 클로저는 메모리 누수 같은 위험성을 가지고 있다. 하지만 메모리 누수나 성능 저하의 문제는 클로저의 단점이나 문제가 아니다. 클로저를 정확하게 사용하면 단점을 극복할 수 있다. 
+
 <div id="1-4-5"></div>
 
 #### 1.4.5 고차 함수
+
+고차 함수란, 함수를 다루는 함수를 말한다.
+1. 함수를 인자로 받아 대신 실행하는 함수
+2. 함수를 리턴하는 함수
+3. 함수를 인자로 받아서 또 다른 함수를 리턴하는 함수
+
+사실상 함수형 프로그래밍의 절반은 '고차 함수를 적극적으로 활용하는 프로그래밍' 이라고 할 수 있다. 유명한 고차 함수로는 `_.map`, `_.filter`, `_.reduce` 등이 있다.
+
+```js
+// 코드 1-48. 함수를 인자로 받아 대신 실행하는 함수
+
+function callWith10(val, func) { return func(10, val); }
+function add(a, b) { return a + b; }
+function sub(a, b) { return a - b; }
+console.log(callWith10(20, add)); // 30
+console.log(callWith10(5, sub)); // 5
+```
+
+여기서 `add`와 `sub`은 일반 함수다. 함수를 인자로 받거나 함수를 리턴하지 않기 때문이다. `callWith10`은 고차 함수다. 함수를 받아 내부에서 대신 실행하기 때문이다. func라는 이름의 인자로 add나 sub 함수를 받아, 역시 인자로 받았던 val과 함께 10을 인자로 넘기면서 대신 실행한다.
+<br/>
+<br/>
+이번에는 함수를 리턴하는 함수를 확인해보자. 이미 함수를 리턴하는 함수도 보았다. 1.1절에서 봤었던 addMaker와 같은 함수다. constant 함수는 이런 걸 어디에 쓸까 싶을 수 있지만 정말 많이 사용되는 함수이기도 하다.
+
+```js
+// 코드 1-49. 함수를 리턴하는 함수
+
+function constant(val) {
+  return function () {
+    return val;
+  };
+}
+
+var always10 = constant(10);
+
+console.log(always10()); //10
+console.log(always10()); //10
+console.log(always10()); //10
+```
+
+`constant` 함수는 실행 당시 받았던 10이라는 값ㅇ르 받아 내부에서 익명 함수를 클로저로 만들어 val을 기억하게 만든 후 리턴한다. 이 함수를 always10에 담아준다. always10을 실행하면 항상 10을 리턴한다. constant처럼 함수를 리턴하는 함수도 고차 함수다.
+
+```js
+// 코드 1-50. 함수를 대신 실행하는 함수를 리턴하는 함수
+
+function callWith(val1) {
+  return function (val2, func) {
+    return func(val1, val2);
+  };
+}
+
+var callWith10 = callWith(10);
+console.log(callWith10(20, add)); // 30
+
+var callWith5 = callWith(5);
+console.log(callWith5(5, sub)); //0
+```
+
+여기서 `callWith`는 함수를 리턴하는 함수다. val1을 받아서 val1을 기억하는 함수를 리턴했다. 리턴된 그 함수에는 이후에 val2와 func를 받아 대신 func를 실행해 준다. 리턴된 그 함수는 이후에 val2와 func를 받아 대신 func를 실행해 준다. callWith에 10을 넣어 앞서 만들었던 callWith10과 동일하게 동작하는 함수를 만들었다. 이제는 callWith를 이용해 뭐든 만들 수 있다. 함수를 리턴하는 함수를 사용하는 경우 다음처럼 변수에 담지 않고 바로 실행해도 된다.
+
+```js
+// 코드 1-51. 괄호 두번
+
+```
+
 <div id="1-4-6"></div>
 
 #### 1.4.6 콜백 함수라 잘못 불리는 보조 함수
