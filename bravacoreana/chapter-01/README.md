@@ -1585,7 +1585,6 @@ callWith5(5, sub); //0
 
 ```js
 // 코드 1-51. 괄호 두번
-
 callWith(30)(20, add); //50
 callWith(20)(20, sub); //0
 ```
@@ -1632,6 +1631,7 @@ callWithUsers(function (user) {
 }, _.every);
 // true
 ```
+
 <div id="1-4-6"></div>
 
 #### 1.4.6 콜백 함수라 잘못 불리는 보조 함수
