@@ -11,6 +11,10 @@
 [1.3.6 연산자 대신 함수로](#1-3-6)<br/>
 [1.3.7 함수 합성](#1-3-7)<br/>
 
+<br/>
+<br/>
+<br/>
+
 <div id="1-3-1"></div>
 
 ### 1.3.1 회원 목록 중 한명 찾기
@@ -149,6 +153,10 @@ console.log(findBy('age', users2, 25)); // undefined
 <div id="limitation"></div>
 👉🏼 한계점: 코드 1-22에서 user의 나이를 getAge()로 얻어야 하기 때문에 findBy 함수로는 위 상황을 대응할 수 없음을 알 수 있다. 이름에 "P"가 포함된 user를 찾고 싶다거나, 나이가 32이면서 이름이 'JM'인 user를 찾고 싶다거나 하는 것도 불가능하다. 나이가 30 미만인 사람을 찾는 것도 findBy로는 할 수 없다. 이런 문제들을 함수형 프로그래밍을 통해 해결 해보자.
 
+<br/>
+<br/>
+<br/>
+
 <div id="1-3-2"></div>
 
 ### 1.3.2 값에서 함수로
@@ -203,6 +211,10 @@ console.log(map(
     function(u) { return u.getName(); })); // 메서드 실행으로 변경
 // ["ID"]
 ```
+
+<br/>
+<br/>
+<br/>
 
 <div id="1-3-3"></div>
 
@@ -384,6 +396,10 @@ console.log(findIndex(users, bmatch({ age: 36 }))); // -1
 
 ```
 
+<br/>
+<br/>
+<br/>
+
 <div id="1-3-4"></div> 
 
 ### 1.3.4 고차 함수
@@ -441,6 +457,10 @@ console.log(
 ); // [1,3]
 ```
 
+<br/>
+<br/>
+<br/>
+
 <div id="1-3-5"></div> 
 
 ### 1.3.5 function identity(v) {return v;}, 이건 어디다 쓰는 거지?
@@ -492,6 +512,9 @@ console.log(_.every([{}, true, 2])); // true
 
 여기서 `_.some`은 배열에 들어 있는 값 중 하나라도 true 가 있으면 true를 반환하고, 하나도 없으면 false 를 리턴한다. `_.every`는 모두 true 여야 true를 리턴한다. `_.some`, `_.every`는 if나 predicate 등과 함께 사용할 때 매우 유용하다. 그런데 코드 1-33에서 아쉬운 점이 하나 있다. filter를 사용했기 때문에 항상 루프 끝까지 돌게 된다는 것이다. 함수를 두 개 더 만들면 로직을 개선할 수 있다.
 
+<br/>
+<br/>
+<br/>
 
 <div id="1-3-6"></div> 
 
@@ -560,6 +583,10 @@ console.log(_.every([{}, true, 2])); // true
 
 좀 더 깔끔해졌고, `positive`와 `negativeIndex`라는 재사용 가능한 함수도 얻었다!
 
+<br/>
+<br/>
+<br/>
+
 <div id="1-3-7"></div>
 
 ### 1.3.7 함수 합성
@@ -620,10 +647,9 @@ _.every = _.compose(beq(-1), negativeIndex);
 
 
 
-
 ---
 
-Prev: [1-2. 함수형 자바스크립트의 실용성](../1-2/README.md)
+Prev: [1-2. 함수형 자바스크립트의 실용성](../1-2/README.md) <br/>
 Next: [1-4. 함수형 자바스크립트를 위한 기초](../1-4/README.md)
 
 ---
