@@ -47,4 +47,4 @@
 &nbsp;&nbsp;&nbsp;&nbsp; 1.4.6 콜백 함수라 잘못 불리는 보조 함수<br/>
 &nbsp;&nbsp;&nbsp;&nbsp; 1.4.7 함수를 리턴하는 함수와 부분 적용<br/>
 
-1.5 [정리](/bravacoreana/chapter-01/1-5/README.md)
+1.5 [정리](/bravacoreana/chapter-01/1-5/README.md)                                           
