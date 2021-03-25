@@ -161,4 +161,237 @@ app.post('login', function(req,res) {
 
 end를 참조하는 곳이 익명 함수인 function (req,res) { ... } 이므로 함수들이 실행되고 나면 end, req, res 모두 메모리에 남지 않기 때문에 메모리 누수는 걱정하지 않아도 된다.
 
-<sub id="2020-03-18"><sup>-- 2020-03-18 --</sup></sub>
+### 2.2.4 괄호 없이 즉시 실행하기
+
+코드 2-20 일반적인 즉시 실행 방식
+
+```jsx
+(function(a) {
+	console.log(a); // 100
+})(100);
+```
+
+코드 2-21 에러가 난 경우
+
+```jsx
+function(a) {
+	console.log(a);
+}(100); // Uncaught SyntaxError : Unexpected token (
+```
+
+에러의 원인 : 익명 함수 선언 자체가 실패함.
+
+코드 2-22 선언만 시도해도 에러가 나는 경우
+
+```jsx
+function () {
+} // Uncaught SyntaxError: Unnexpected token (
+```
+
+실행없이 선언만해도 에러가 발생한다.
+
+코드 2-23 괄호 없이 정의했는데 에러가 나지 않는 경우
+
+```jsx
+function f1() {
+	return function() {
+	}
+}
+f1();
+```
+
+정상 동작한다.
+
+이 상황에서 에러가 나지 않는다면 괄호 없이 즉시 실행도 되지 않을까?
+
+코드 2-24
+
+```jsx
+function f1() {
+	return function(a){
+		console.log(a);
+	}(1);
+}
+f1(); // 1
+```
+
+정상 동작한다.
+
+f1이라는 함수 안에 있는 익명 함수는 괄호 없이도 즉시 실행이 되었다.
+
+코드 2-25 괄호 없이 정의가 가능한 (즉시 실행도 가능한) 다양한 상황
+
+```jsx
+!function(a) {
+	console.log(a);
+}(1); // 1
+
+true && function(a) {
+	console.log(a);
+}(1); // 1
+
+1 ? function(a) {
+	console.log(a);
+}(1) : 5;
+
+0, function(a) {
+	console.log(a);
+}(1); // 1
+
+var b = function(a) {
+	console.log(a);
+}(1); // 1
+
+function f2() {}
+f2(function(a) {
+	console.log(a);
+}(1)); // 1
+
+var f3 = function c(a) {
+	console.log(a);
+}(1); // 1
+
+new function() {
+	console.log(1);
+}; // 1
+```
+
+공통점 : 연산자와 함께 있고 함수가 값으로 다뤄졌다.
+
+익명 함수뿐 아니라 유명 함수도 즉시 실행할 수 있다.
+
+코드를 실행할 수 있는 모든 곳에서
+
+모든 종류의 함수를 선언할 수는 없지만,
+
+함수를 선언할 수 있는 모든 영역에서는 익명 함수든 유명 함수든 일반 함수든 메서드든 모두 실행할 수 있다.
+
+연산자의 피연산자가 되면,  return등과 함께 사용되면 익명 함수를 선언할 수 있게 되고
+
+익명 함수를 선언할 수 있으면 즉시 실행도 가능하다.
+
+코드 2-26
+
+```jsx
+var pj = new function() {
+	this.name = "PJ";
+	this.age = 28;
+	this.constructor,prototype.hi = function() {
+		console.log('hi');
+	}
+};
+console.log(pj); // { name: "PJ", age: 28 }
+pj.hi(); // h1
+```
+
+위 코드와 같이 객체를 만드는 것도 가능하다.
+
+값으로 함수를 잘 다룰 수 있다면 즉시 실행도 자유롭게 잘 다룰 수 있다는 것을 보여주기 위해 즉시 실행 방법에 대해 알아보았다. 다음과 같은 응용도 존재한다.
+
+코드 2-27 즉시 실행하며 this 할당하기
+
+```jsx
+var a = function(a) {
+	console.log(this, a);
+}.call([1], 1); // [1], 1
+```
+
+함수의 메서드인 call을 바로 .으로 접근할 수도 있으며, 익명 함수를 즉시 실행하면서 this를 할당할 수도 있다.
+
+즉시 실행 기법은 최상위 스코프에서만 사용하는 것이 아니다. 모듈간의 혼선을 보호하거나 은닉을 하기 위해서만 사용하는 것도 아니다.
+
+(f())만 써야 하는 것도, (f)()만 써야 하는 것도 아니다. 특정 상황에 꼭 맞는 문법을 선택하면 된다.
+
+### 2.2.5 new Function이나 eval을 써도 될까요?
+
+함수를 정의하는 방법 중에는 new Function을 활용하는 방법이 있다.
+
+여러가지 부정적인 의견이 있지만 인동님의 견해는 이렇다.
+
+- 보안에 대한 과제는 클라이언트의 특정 요청에 대해 서버에서 응답을 줘도 될 것인지 안 될 것인지 잘 판단하는 데 달려있다.
+- 소프트웨어의 성능은 어떤 기법을 어떻게 사용했는지에 따라 결정된다. 어떤 기법이든 좋은 로직이 뒷받침되어야 알맞고 효율적으로 사용할 수 있다.
+- Javascript로 HTML 템플릿 엔진을 만든다거나, 기타 특정 상황에서 new Function이 꼭 필요할 때가 있다. 그럴 때 로직을 잘 보완하면 해당 코드가 성능에 미칠 부정적인 영향을 얼마든지 최소화할 수 있다.
+
+아래 코드는 eval과 new Function의 사용법이다.
+
+코드 2-28
+
+```jsx
+var a = eval('10 + 5');
+console.log(a); // 15
+
+var add = new Function('a, b', 'return a + b;');
+add(10, 5); // 15
+```
+
+### 2.2.6 간단 버전 문자열 화살표 함수와 new Function 성능
+
+ES6에서 화살표 함수를 사용할 수 있다.
+
+2016년을 기준으로 Node.js 환경에서는 ES6의 화살표 함수가 정식으로 지원되고 있다.
+
+그러므로 2.2.6 단원은 new Function이 무엇인지와 메모이제이션(memoization) 기법만 살펴보고 넘어가도록 하겠다.
+
+ES5 환경에서도 화살표 함수를 사용해보고 싶다면 교재에 적혀있는대로 사용하는 방법도 가능하지만,
+
+별로 이렇게 사용하고 싶지 않으니 기존 화살표 함수를 사용하겠다.
+
+어떻게 정의하는지만 간단하게 표시하겠다.
+
+- new Function 문법
+
+함수 표현식과 함수 선언문 이외에 함수를 만들 수도 있는 방법이다.
+
+```jsx
+let func = new Function('a', 'b', 'return a + b;');
+console.log(func(1,2)); // 3
+```
+
+- 메모이제이션(memoization)
+    - 컴퓨터 프로그램이 동일한 계산을 반복해야 할 때, 이전에 계산한 값을 메모리에 저장함으로써 동일한 계산의 반복 수행을 제거하여 프로그램 실행 속도를 빠르게 하는 기술.
+    - 동적 계획법의 핵심이 되는 기술이다. - 위키백과
+
+간단하게 설명하면 아래와 같다.
+
+```jsx
+function longTimeFn(arg){
+	if(/* arg로 캐시된 작업 결과가 있는가? */)
+		return cache;
+	else {
+		// 아주 긴 시간 동안 긴 작업을 수행한다.
+		// 캐시에 결과를 저장한다.
+	}
+	return result;
+}
+
+longTimeFn('jCloud'); // 캐시된 작업 결과가 없어 작업을 수행한다. 이후 캐시에 결과가 저장된다.
+longTimeFn('noCloud'); // 캐시된 작업 결과가 없어 작업을 수행한다. 이후 캐시에 결과가 저장된다.
+longTimeFn('noCloud'); // noCloud는 이미 실행된 작업이므로 캐시 결과를 반환한다.
+longTimeFn('jCloud'); // jCLoud는 이미 실행된 작업이므로 캐시 결과를 반환한다.
+```
+
+반복 작업을 할때는 캐시에 저장하면 좋다.
+
+ex 코드 제곱근
+
+```jsx
+function sqrt(arg) {
+	if(!sqrt.cache)
+		sqrt.cache = {};
+	if(!sqrt.cache[arg])
+		return sqrt.cache[arg] = Math.sqrt(arg);
+	return sqrt.cache[arg];
+}
+```
+
+함수 속성인 캐시 객체에 각 결과가 저장된 sqrt 함수를 볼 수 있다.
+
+```jsx
+sqrt(9);
+sqrt(4);
+console.log(sqrt.cache);
+```
+
+![image/_2021-03-25__9.39.10.png](image/_2021-03-25__9.39.10.png)
+
+<sub id="2020-03-25"><sup>-- 2020-03-25 --</sup></sub>
