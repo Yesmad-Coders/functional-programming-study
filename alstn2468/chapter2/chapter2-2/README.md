@@ -308,7 +308,224 @@ var a = function (a) {
 
 ## 2.2.5 new Function이나 eval을 써도 될까요?
 
+`new Funcion`이나 `eval`을 이용하는 방법은 보안 문제가 있다는 이야기가 많다.
+
+하지만 서버에서 클라이언트가 보낸 값을 이용해 `new Function`이나 `eval`을 사용하는 것이 아니라면 보안 문제는 있을 수 없다.
+
+서버에서도 마찬가지로 서버에서 생성한 값만으로 `new Function`이나 `eval`을 사용하면 보안적 문제가 생기지 않는다.
+
+보안과 `eval`의 직접적인 연관은 없으며, 어디까지나 보안에 대한 과제는 클라이언트의 요청에 대해 서버에서 응답을 줘도 될 것인지 안될 것인지 판단하는데 달려 있다.
+
+또한 `new Function`이나 `eval`을 성능상 이유를 사용하지 말라고도 한다.
+
+`eval`은 문자열을 자바스크립트 코드로 변환해야 하기 때문에 일반 코드에 비해 느린 것은 당연하다.
+
+하지만 해당 기법을 대체할 기능이 없다면 기법이 느리든 빠르든 사용해야 한다.
+
+자바스크립트로 HTML 템플릿 엔진을 만든다거나, 기타 특정 상황에서는 `new Function`이 꼭 필요할 때가 있다.
+
+- 코드 2-28 `eval`과 `new Function` 사용법
+
+```javascript
+var a = eval('10 + 5');
+console.log(a); // 15
+var add = new Function('a', 'b', 'return a + b;');
+console.log(add(10, 5)); // 15
+```
+
+`eval`과 `new Function`은 위 코드와 같이 사용할 수 있다.
+
 ## 2.2.6 간단 버전 문자열 화살표 함수와 new Function 성능
+
+화살표 함수는 ES6에서 사용할 수 있다.
+
+ES5 환경에서도 화살표 함수의 짧고 간결한 표현을 사용하고 싶다면 아래와 같이 만들어 사용할 수 있다.
+
+- 코드 2-29 간단 버전 문자열 화살표 함수
+
+```javascript
+function L(str) {
+  var splited = str.split('=>');
+  return new Function(splited[0], 'return (' + splited[1] + ')');
+}
+
+console.log(L('n => n * 10')(10)); // 100
+console.log(L('n => n * 10')(20)); // 200
+console.log(L('n => n * 10')(30)); // 300
+console.log(L('a, b => a + b')(10, 20)); // 30
+console.log(L('a, b => a + b')(10, 5)); // 15
+```
+
+문자열에서 =>를 기준으로 나눠 앞부분을 `new Function`의 첫 번째 인자에 넣었다.
+
+`new Function`의 첫 번째 인자는 함수의 인자 선언붕 사용될 코드가 된다.
+
+`split[1]`은 함수의 몸통 부분으로 사용된다.
+
+`L`을 사용하면 간단한 한 줄짜리 코드를 화살표 함수처럼 작성할 수 있다.
+
+- 코드 2-30 10,000번 선언해보기
+
+```javascript
+console.time('익명 함수');
+for (var i = 0; i < 10000; i++) {
+  (function (v) {
+    return v;
+  })(i);
+}
+console.timeEnd('익명 함수'); // 익명 함수: 1.811ms
+
+console.time('new Function');
+for (var i = 0; i < 10000; i++) {
+  L('v => v')(i);
+}
+console.timeEnd('new Function'); // new Function: 15.273ms
+```
+
+둘 다 동일한 일을 하지만 함수를 선언하는데 소요된 시간의 차이가 크다.
+
+- 코드 2-31 익명 함수와 문자열 화살표 함수
+
+```javascript
+console.time('1');
+var arr = Array(10000);
+_.map(arr, function (v, i) {
+  return i * 2;
+});
+console.timeEnd('1'); // 1: 1.706ms
+
+console.time('2');
+_.map(arr, L('v, i => i * 2'));
+console.timeEnd('2'); // 2: 2.861ms
+```
+
+_.map을 이용해 length가 10,000인 배열을 돌면서 i를 곱해 [0, 2, 4, ...]의 새로운 배열 객체를 만드는 코드를 이용해 성능을 비교했다.
+
+위의 코드에서는 성능 차이가 거의 존재하지 않는다.
+
+위의 예제를 잘 확인해보면 10,000번 반복되었지만 `new Function`은 한 번만 실행된다.
+
+L 함수는 한 번만 실행되었고 한 번의 `new Function`으로 만들어진 함수를 iteratee로 _.map에 넘겼다.
+
+_.map의 입장에서는 함수가 일반 자바스크립트로 정의되었든 `new Function`으로 정의되었든 그저 함수일 뿐이다.
+
+- 코드 2-32 `eval`로 한 번 더 감싼 경우
+
+```javascript
+console.time('3');
+var arr = Array(10000);
+_.map(arr, eval("L('v, i => i * 2')"));
+console.timeEnd('3'); // 3: 1.757ms
+```
+
+`eval`을 사용해 한 번 더 감싸도 성능 차이는 거의 없다.
+
+크게 느리지 않은 것도 사실이지만 분명히 성능의 차이는 존재한다.
+
+- 코드 <span id="code-2-33">2-33</span> 300배의 성능 차이
+
+```javascript
+console.time('4');
+var arr = Array(10000);
+_.map(arr, function (v, i) {
+  return (function (v, i) {
+    return i * 2;
+  })(v, i);
+});
+console.timeEnd('4'); // 4: 2.649ms
+
+console.time('5');
+var arr = Array(10000);
+_.map(arr, function (v, i) {
+  return L('v, i => i * 2')(v, i);
+});
+console.timeEnd('5'); // 5: 18.288ms
+```
+
+두 경우 모두 10,000번의 루프를 돌며 계속해서 새로운 함수를 생성하여 즉시 실행하는데, 둘의 성능 차이가 크다.
+
+하지만 위와 같은 상황에서 `new Function`을 사용해도 성능 이슈를 없앨 수 있다.
+
+- 코드 2-34 메모제이션(memoization) 기법
+
+```javascript
+function L(str) {
+  var splited = str.split('=>');
+  return new Function(splited[0], 'return (' + splited[1] + ')');
+}
+
+function L2(str) {
+  if (L2[str]) return L2[str];
+  var splited = str.split('=>');
+  return (L2[str] = new Function(splited[0], 'return (' + splited[1] + ')'));
+}
+```
+
+기존의 L을 간단하게 고쳐 L2 함수를 생성했다.
+
+L2 함수는 이전에 들어왔던 것과 같은 인자가 들어오면 새롭게 생성하지 않고 원래 있던 함수를 반환한다.
+
+이전에 들어왔던 문자열과 동일한 문자열로 작성된 화살표 함수 표현식이 들어오면, 기존에 만들어 둔 함수를 활용한다.
+
+- 코드 2-35 코드 구조는 그대로지만 성능은 다시 좋아졌다.
+
+```javascript
+console.time('6');
+var arr = Array(1000);
+_.map(arr, function (v, i) {
+  return L2('v, i => i * 2')(v, i);
+});
+console.timeEnd('6'); // 6: 0.384ms
+```
+
+함수도 객체라는 점과 객체의 키를 []를 통해 동적으로 정할 수 있다는 점을 활용했다.
+
+[코드 2-33](#code-2-33)의 익명 함수를 이용한 코드보다 더 빠르게 코드가 실행되었다.
+
+코드 2-33의 코드는 익명 함수를 매번 생성하지만, 위의 예시는 L2 함수를 통해 함수를 한 번만 생성하고, 다시 들어왔을 때는 기존에 만들어진 함수를 참조만 하기 때문이다.
+
+- 코드 2-36 Partial.js의 문자열 화살표 함수
+
+```javascript
+var _ = {};
+
+try {
+  var has_lambda = true;
+  eval('a=>a');
+} catch (err) {
+  var has_lambda = false;
+}
+_.l = _.lambda = function f(str) {
+  if (typeof str !== 'string') return str;
+  if (f[str]) return f[str]; // (1)
+  if (!str.match(/=>/))
+    return (f[str] = new Function('$', 'return (' + str + ')')); // (2)
+  if (has_lambda) return (f[str] = eval(str)); // (3)
+  var ex_par = str.split(/\s*=>\s*/);
+  return (f[str] = new Function( // (4)
+    ex_par[0]
+      .replace(
+        /(?:\b[A-Z]|\.[a-zA-Z_$])[a-zA-Z_$\d]*|[a-zA-Z_$][a-zA-Z_$\d]*\s*:|this|arguments|'(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*"/g,
+        ''
+      )
+      .match(/([a-z_$][a-z_$\d]*)/gi) || [],
+    'return (' + ex_par[1] + ')'
+  ));
+};
+
+console.log(_.l('(a, b) => a + b')(10, 10)); // 20
+console.log(_.l('a => a * 5')(10)); // 50
+console.log(_.l('$ => $ * 10')(10)); // 100
+
+console.log(_.l('$ * 10')(10)); // 100
+console.log(_.l('++$')(1)); // 2
+```
+
+1에서 동일한 str이 들어오면 캐시된 함수를 반환한다.
+
+3에서 화살표 함수가 정식 지원되고 있는 경우에 ES6에게 위임하고 아닐 때는 4에서 `new Function`을 활용한다.
+
+2에서 ES6의 화살표 함수에서 인자를 생략한 더 간단한 문법을 추가로 지원하고 있다.
 
 ## 2.2.7 유명(named) 함수
 
