@@ -1,0 +1,60 @@
+<script>
+  const testObj = {
+    testValue: "testValue",
+    testFunc(param) {
+      console.log("param: ", param, ":", this);
+    },
+    testArrowFunc: () => {
+      console.log("arrow");
+      console.log(this);
+    },
+  };
+
+  // case 1
+  testObj.testFunc("case1");
+  // => testObj
+
+  // case 2
+  const test = testObj;
+  test.testFunc("case2");
+  // => testObj
+
+  // case 3
+  const testFunc = test.testFunc;
+  testFunc("case3");
+  // => globalThis
+
+  // case 5
+  window.addEventListener("DOMContentLoaded", testObj.testFunc);
+  // => Event, Window
+  // testFunc 의 arg로 Event 가 사용된다
+  // arrow 처럼 this 가 Window 를 바라봄?
+
+  // case 6
+  window.addEventListener("DOMContentLoaded", testObj.testFunc.bind(testObj));
+  // => Event, testObj
+  // testFunc 의 arg로 Event 가 사용된다
+  // bind 해줬더니 this 가 testObj 바라봄
+
+  window.onload = () => {
+    // case 4
+    document
+      .querySelector("#button")
+      .addEventListener("click", testObj.testFunc);
+    // => MouseEvent, buttonDOM
+    // testFunc 의 arg로 MouseEvent 가 사용된다
+    // this가 buttonDOM 이네?
+
+    // case 7
+    document
+      .querySelector("#button")
+      .addEventListener("click", testObj.testArrowFunc);
+    // => arrow, Window
+    // arrow의 this 는 Window 바라봄
+  };
+</script>
+<body>
+  Live server on 5500
+  <button id="button">test</button>
+  <p>누가 호출했는지에 따라 this가 결정?</p>
+</body>
