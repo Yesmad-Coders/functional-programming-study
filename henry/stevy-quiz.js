@@ -73,9 +73,9 @@ const curriedFilter = (predicate) => (array) => {
   return result;
 };
 
-const curriedReduce = (predicate) => (array, initValue) => {
-  let acc = initValue ? initValue : array[0];
-  for (let i = initValue ? 0 : 1; i < array.length; i++) {
+const curriedReduce = (predicate, initValue) => (array) => {
+  let acc = initValue === undefined ? array[0] : initValue;
+  for (let i = initValue === undefined ? 1 : 0; i < array.length; i++) {
     acc = predicate(acc, array[i]);
   }
   return acc;
@@ -84,6 +84,7 @@ const curriedReduce = (predicate) => (array, initValue) => {
 console.log(curriedMap((item) => item + 1)([1, 2, 3])); // 2 3 4
 console.log(curriedFilter((item) => item > 1)([1, 2, 3])); // 2 3
 console.log(curriedReduce((acc, item) => acc + item)([1, 2, 3])); // 6
+console.log(curriedReduce((acc, item) => acc + item, 8)([1, 2, 3])); // 6
 
 // step 3) go, pipe 구현 해보기
 const go = (list, f1, f2, f3) =>
@@ -131,13 +132,14 @@ const cookies = [
 ];
 
 const setCookieTable = pipe(
-  curriedMap(
-    (sentence) =>
-      `<tr>\n${curriedMap((td) => `<td>${td}</td>`)(sentence.split(/,\s/)).join(
-        "\n"
-      )}</tr>`
+  curriedMap((sentence) => sentence.split(/,\s/)),
+  curriedFilter((cookieProperties) =>
+    ["0티어", "1티어"].includes(cookieProperties[1])
   ),
-  curriedReduce((acc, curr) => acc + curr + "\n")
+  curriedReduce(
+    (acc, curr) => `${acc}<tr>\n<td>${curr.join("</td>\n<td>")}</td>\n</tr>\n`,
+    ""
+  )
 );
 // pipe로 구현 할 것
 
