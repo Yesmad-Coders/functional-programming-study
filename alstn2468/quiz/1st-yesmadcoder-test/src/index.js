@@ -152,8 +152,11 @@ const cookies = [
 ];
 
 const setCookieTable = pipe(
-  filter((item) => item.includes('0티어') || item.includes('1티어')),
   map((item) => item.split(',')),
+  filter((item) => {
+    const [_, tier] = item;
+    return parseInt(tier) < 2;
+  }),
   map((item) => map((cookie) => `<td>${cookie.trim()}</td>`, item)),
   map((item) => item.join('')),
   reduce((acc, item) => acc + `<tr>${item}</tr>`)
