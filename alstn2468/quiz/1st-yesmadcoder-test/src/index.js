@@ -151,12 +151,12 @@ const cookies = [
   '눈설탕맛 쿠키,	2.5티어, 중앙마법,	쿨타임 감소',
 ];
 
+const TIER_INDEX = 1;
+const MINIMUM_TIER = 2;
+
 const setCookieTable = pipe(
   map((item) => item.split(',')),
-  filter((item) => {
-    const [_, tier] = item;
-    return parseInt(tier) < 2;
-  }),
+  filter((item) => parseInt(item[TIER_INDEX]) < MINIMUM_TIER),
   map((item) => map((cookie) => `<td>${cookie.trim()}</td>`, item)),
   map((item) => item.join('')),
   reduce((acc, item) => acc + `<tr>${item}</tr>`)
