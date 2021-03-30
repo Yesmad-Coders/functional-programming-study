@@ -8,8 +8,8 @@
 
 - 값으로 다룰수 있음
 - 변수에 담을 수 있음
-- 함수의 인자로 사용가능
-- 함수의 결과로 사용가능
+- 함수의 인자로 사용 가능
+- 함수의 결과로 사용 가능
 
 ## 일급 함수(First-class function)
 
@@ -57,11 +57,14 @@ for (const a of list) {
 
 ## Iterable Objects - Array, Set, Map
 
+- Symbol.iterator를 key 로 사용하여 접근 가능
+
 ```ts
 const arr = [1, 2, 3];
-for (const a of arr) log(a);
 let iter1 = arr[Symbol.iterator]();
+iter1.next();
 for (const a of iter1) log(a);
+// => 2, 3
 
 const set = new Set([1, 2, 3]);
 for (const a of set) log(a);
@@ -74,12 +77,97 @@ const map = new Map([
 for (const a of map.keys()) log(a);
 for (const a of map.values()) log(a);
 for (const a of map.entries()) log(a);
-const it = map.values();
-it2 = it[Symbol.iterator];
+const it = map.values(); // return 값이 array 이고 Symbol.iterator를 key로 가짐
+it2 = it[Symbol.iterator](); // 다시 iterator return 가능
+for (const a of it2) log(a);
 ```
 
 ## Iterable/Iterator Protocol
 
-- Iterable: Iterator 를 리턴하는 [Symbol.iterator]() 를 가진 값
-- Iterator: {value, done} 객체를 리턴하면 next() 를 가진 값
+- Iterable: [Symbol.iterator]() method 통해 Iterator를 return
+- Iterator: next() method를 통해 {value, done} object를 return
 - Iterable/Iterator Protocol: Iterable을 for...of, 전개 연산자 등과 함께 동작하도록 한 규약
+- ImmutableJs(Facebook), DOM 등 많은 Open source 들도 iterable protocol을 따르고 있음
+  - eg) `for (const a of document.querySelectorAll('*')) log(a);`
+- 전개연산자(Spread syntax) ... 역시 Iterable
+
+## 사용자 정의 iterable
+
+```js
+const iterable = {
+  [Symbol.iterator]() {
+    let i = 3;
+    return {
+      next() {
+        return i === 0 ? { done: true } : { value: i--, done: false };
+      },
+      [Symbol.iterator]() {
+        return this;
+      }, // 자기 자신을 iterable하게 반환할 수 있어야 진정한 iterable => next로 진행 되던 상태를 기억
+    };
+  },
+};
+let iterator = iterable[Symbol.iterator]();
+log(iterator.next());
+log(iterator.next());
+for (const a of iterator) log(a);
+```
+
+# 제너레이터와 이터레이터
+
+## Generator
+
+- Iterator인 Iterable(Well-formed iterator)을 생성하는 함수
+- 문장 처럼 순회, 산출 한다 => 어떠한 값도 generator 통해 순회할 수 있다.(다형성⬆️)
+
+```js
+function* gen() {
+  yield 1;
+  if (false) yield 2;
+  yield 3;
+  return 100;
+}
+let iter = gen();
+log(iter[Symbol.iterator]() == iter);
+log(iter.next());
+```
+
+## odds with generator
+
+```js
+function* infinity(i = 0) {
+  while (true) yield i++;
+}
+function* limit(l, iter) {
+  for (const a of iter) {
+    yield a;
+    if (a == l) return;
+  }
+}
+function* odds(l) {
+  for (const a of limit(l, infinity(1))) {
+    if (a % 2) yield a;
+  }
+}
+let iter2 = odds(10);
+console.log(iter2.next());
+for (const a of iter2) console.log(a);
+```
+
+## for of, spread, Destructuring, rest 모두 사용 가능
+
+```ts
+// spread
+console.log(...odds(10));
+console.log([...odds(10), ...odds(20)]);
+
+const [head, ...tail] = odds(5);
+console.log(head);
+console.log(tail);
+
+// destructuring with rest
+const [a, b, ...rest] = odds(10);
+console.log(a);
+console.log(b);
+console.log(rest);
+```
