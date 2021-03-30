@@ -171,3 +171,252 @@ console.log(a);
 console.log(b);
 console.log(rest);
 ```
+
+# map, filter, reduce
+
+## map
+
+### 함수형프로그래밍은...
+
+- 외부의 함수를 호출하는 것이 아니라
+- 인자와 return 앞으로 소통하는 것을 권장한다.
+
+```js
+const products = [
+  { name: "반팔티", price: 15000 },
+  { name: "긴팔티", price: 20000 },
+  { name: "핸드폰케이스", price: 15000 },
+  { name: "후드티", price: 30000 },
+  { name: "바지", price: 25000 },
+];
+
+// legacy iteration
+let names = [];
+for (const p of products) {
+  names.push(p.name);
+}
+console.log(names);
+
+// functional map
+const map = (f, iter) => {
+  let res = [];
+  for (const a of iter) {
+    res.push(f(a));
+  }
+  return res;
+};
+console.log(map((p) => p.name, products));
+```
+
+## Iterable map의 다형성
+
+1. DOM 가능
+
+```js
+console.log(map((el) => el.nodeName, document.querySelectorAll("*")));
+```
+
+2. generator도 가능
+
+```js
+function* gen() {
+  yield 2;
+  if (false) yield 3;
+  yield 4;
+}
+console.log(map((a) => a * a, gen()));
+
+let m = new Map();
+m.set("a", 10);
+m.set("b", 20);
+console.log(new Map(map(([k, a]) => [k, a * 2], m)));
+```
+
+## Filter
+
+```js
+const products = [
+  { name: "반팔티", price: 15000 },
+  { name: "긴팔티", price: 20000 },
+  { name: "핸드폰케이스", price: 15000 },
+  { name: "후드티", price: 30000 },
+  { name: "바지", price: 25000 },
+];
+
+const filter = (f, iter) => {
+  let res = [];
+  for (const a of iter) {
+    if (f(a)) res.push(a);
+  }
+  return res;
+};
+
+console.log(filter((p) => p.price > 20000, products));
+console.log(filter((n) => n % 2, [1, 2, 3, 4]));
+console.log(
+  filter(
+    (n) => n % 2,
+    (function* () {
+      yield 1;
+      yield 2;
+      yield 3;
+      yield 4;
+      yield 5;
+    })()
+  )
+);
+```
+
+## Reduce
+
+```js
+const nums = [1, 2, 3, 4, 5];
+let total = 0;
+for (const n of nums) {
+  total = total + n;
+}
+console.log(total);
+
+const reduce = (f, acc, iter) => {
+  if (!iter) {
+    iter = acc[Symbol.iterator]();
+    acc = iter.next().value;
+  }
+  for (const x of iter) {
+    acc = f(acc, x);
+  }
+  return acc;
+};
+console.log(reduce((a, b) => a + b, nums));
+
+const products = [
+  { name: "반팔티", price: 15000 },
+  { name: "긴팔티", price: 20000 },
+  { name: "핸드폰케이스", price: 15000 },
+  { name: "후드티", price: 30000 },
+  { name: "바지", price: 25000 },
+];
+console.log(
+  reduce((total_price, product) => total_price + product.price, 0, products)
+  // products[0] 은 object이므로 init acc 지정 필요
+);
+```
+
+## map + fileter + reduce
+
+```js
+const add = (a, b) => a + b;
+log(
+  reduce(
+    add,
+    map(
+      (p) => p.price,
+      filter((p) => p.price < 20000, products)
+    )
+  )
+);
+```
+
+# 코드를 값으로 다루어 표현력 높이기
+
+## go & pipe
+
+- 코드를 값으로: 평가하는 시점을 원하는 대로 다룰 수 있다 => 코드의 표현력, 가독성을 높임
+
+```js
+const go = (...args) => reduce((a, f) => f(a), args);
+const pipe = (f, ...fs) => (...args) => go(f(...args), ...fs); // fs = functions...
+const add = (a, b) => a + b;
+go(
+  add(0, 1),
+  (a) => a + 1,
+  (a) => a + 10,
+  (a) => a + 100,
+  log
+); // 111
+const f = pipe(
+  add,
+  (a) => a + 1,
+  (a) => a + 10,
+  (a) => a + 100,
+  log
+);
+f(0, 1); // 111
+
+go(
+  products,
+  (products) => filter((p) => p.price < 20000, products),
+  (products) => map((p) => p.price, products),
+  (prices) => reduce(add, prices),
+  log
+);
+```
+
+## Curry
+
+```js
+const curry = (f) => (a, ..._) =>
+  _.length ? f(a, ..._) : (..._) => f(a, ..._);
+
+const mult = curry((a, b) => a * b);
+log(mult(3)(2));
+const mult3 = mult(3);
+log(mult3(5));
+log(mult3(10));
+```
+
+### 3단변화 reduce => go => curry
+
+```js
+// reduce로 묶어 처리
+log(
+  reduce(
+    add,
+    map(
+      (p) => p.price,
+      filter((p) => p.price < 20000, products)
+    )
+  )
+);
+
+// go 를 통해 순서를 바꿈
+go(
+  products,
+  (products) => filter((p) => p.price < 20000, products),
+  (products) => map((p) => p.price, products),
+  (prices) => reduce(add, prices),
+  log
+);
+
+// curry를 씌운 filter, map, reduce는 function return 하므로 앞의 array를 바로바로 받을 수 있다.
+go(
+  products,
+  filter((p) => p.price < 20000),
+  map((p) => p.price),
+  reduce(add),
+  log
+);
+```
+
+## 함수 조합으로 함수 만들기
+
+```js
+const total_price = pipe(
+  map((p) => p.price),
+  reduce(add)
+);
+
+const base_total_price = (predicate) => pipe(filter(predicate), total_price);
+
+go(
+  products,
+  base_total_price((p) => p.price < 20000),
+  log
+);
+
+go(
+  products,
+  base_total_price((p) => p.price >= 20000),
+  log
+);
+```
