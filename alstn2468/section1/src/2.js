@@ -1,4 +1,4 @@
-const log = require('../../lib/log');
+import log from '../../lib/log';
 
 // Array를 통해 알아보기
 // Array는 인덱스를 이용해 값에 접근할 수 있다.

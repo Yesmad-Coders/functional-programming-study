@@ -1,4 +1,4 @@
-const log = require('../../lib/log');
+import log from '../../lib/log';
 
 // 사용자 정의 이터러블을 통해 알아보기
 const iterable = {

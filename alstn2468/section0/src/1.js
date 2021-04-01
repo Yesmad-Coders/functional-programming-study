@@ -1,4 +1,4 @@
-const log = require('../../lib/log');
+import log from '../../lib/log';
 
 // 평가 (Evaluation)
 // - 코드가 계산 되어 값을 만다는 것

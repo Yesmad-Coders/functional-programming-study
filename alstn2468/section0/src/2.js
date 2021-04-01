@@ -1,4 +1,4 @@
-const log = require('../../lib/log');
+import log from '../../lib/log';
 
 // 일급 함수
 // - 함수를 값으로 다룰 수 있다.

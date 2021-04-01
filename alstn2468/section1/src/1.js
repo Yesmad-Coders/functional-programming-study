@@ -1,4 +1,4 @@
-const log = require('../../lib/log');
+import log from '../../lib/log';
 
 // 기존 달라진 ES6에서의 리스트 순회
 // - for i++
