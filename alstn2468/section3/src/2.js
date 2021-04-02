@@ -5,8 +5,8 @@ import log from '../../lib/log';
 
 /**
  * [map 함수]
- * @param {Iterable} iter [이터레이터]
  * @param {function} f    [위임할 보조함수]
+ * @param {Iterable} iter [이터레이터]
  */
 const map = (f, iter) => {
   let res = [];
