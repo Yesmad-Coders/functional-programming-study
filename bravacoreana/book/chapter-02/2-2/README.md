@@ -373,12 +373,67 @@ console.log(a);
 var add = new Function("a,b", "return a+b;");
 add(10, 5); // 15
 ```
+
 <br/>
 <br/>
 <br/>
 <div id="2-2-6">
 
 ### 2.2.6 간단 버전 문자열 화살표 함수와 new Function 성능 
+
+화살표 함수는 ES6에서 사용할 수 있다.
+
+```js
+// 코드 2-29. 간단 버전 문자열 화살표 함수
+
+function L(str) {
+  var splitted = str.split("=>");
+  return new Function(splitted[0], "return (" + splitted[1] + ");");
+}
+
+L("n => n * 10")(10); // 100
+L("n => n * 10")(20); // 200
+L("n => n * 10")(30); // 300
+L("a, b => a + b")(10, 20); // 30
+L("a, b => a + b")(10, 5); // 15
+```
+
+구현은 간단하다. 문자열에서 `=>` 를 기준으로 나눠 앞부분을 `new Function`의 첫번째 인자에 넣었다. `new Function`의 첫번째 인자는 함수의 인자 선언부에 사용 될 코드가 된다. `splitted[1]`는 함수의 몸통 부분으로 사용된다. L을 사용하면 간단한 한 줄짜리 코드를 화살표 함수처럼 작성할 수 있다.
+
+성능상의 차이는 어느정도 일까? 다음 코드는 일반적인 익명 함수 선언과 `new Function`의 성능 차이를 보여 준다.
+
+```js
+// 코드 2-30. 10,000번 선언해 보기
+
+console.time("익명함수");
+for (var i = 0; i < 10000; i++) {
+  (function (v) {
+    return v;
+  })(i);
+}
+console.timeEnd("익명함수");
+
+console.time("new Function");
+for (var i = 0; i < 10000; i++) {
+  L("v=>v")(i);
+}
+console.timeEnd("new Function");
+
+// 익명함수: 0.557ms
+// new Function: 10.573ms
+```
+
+둘 다 동일한 일을 하지만 함수를 선언하는데 소요된 시간의 차이가 꽤 크다. 
+
+이번에는 `_.map`을 이용해 length가 10,000인 배열을 돌면서 i를 곱해 [0,2,4,6,...] 의 새로운 배열 객체를 만드는 코드로 성능을 비교해 보자.
+
+```js
+// 코드 2-31. 익명 함수와 문자열 화살표 함수
+
+
+```
+
+
 <br/>
 <br/>
 <br/>
