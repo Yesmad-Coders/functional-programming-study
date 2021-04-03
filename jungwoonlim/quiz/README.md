@@ -11,6 +11,5 @@
 |           문제           |                     링크                      |
 | :---------------------: | :-----------------------------------------: |
 |  1st Yesmad-Coders Test | [:link:](1st-yesmadcoders-test/README.md) |
-| :---------------------: | :-----------------------------------------: |
 |  2nd Yesmad-Coders Test | [:link:](2nd-yesmadcoders-test/README.md) |
 
