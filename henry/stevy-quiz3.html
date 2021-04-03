@@ -1,0 +1,75 @@
+<script>
+  /*
+      커스텀 promise 구현하기
+    */
+
+  //   const MyPromise = class {
+  //     constructor(executor) {
+  //       this.state = "pending";
+  //       this.value = null;
+  //       executor((resolved) => {
+  //         this.value = resolved;
+  //       });
+  //       this.handlers = [];
+  //       executor((resolved) => {
+  //         this.value = resolved;
+  //         this.handlers.forEach((cb) => {
+  //           cb(this.value);
+  //         });
+  //       });
+  //     }
+  //     resolve(value) {
+  //       try {
+  //       } catch (error) {}
+  //     }
+  //     then(callback) {
+  //       callback(this.value);
+  //       this.handlers.push(fcallback);
+  //       return this;
+  //     }
+  //     catch(callback) {}
+  //   };
+
+  //   new MyPromise((resolve, reject) => {
+  //     setTimeout(() => {
+  //       resolve("첫번째 프로미스");
+  //     }, 1000);
+  //   })
+  //     .then((value) => {
+  //       console.log(value);
+  //       return "두번째 프로미스";
+  //     })
+  //     .then((value) => {
+  //       console.log(value);
+  //       throw "이건 에러야";
+  //     })
+  //     .catch((e) => {
+  //       console.log(e);
+  //     });
+
+  //   출력
+  //   첫번째 프로미스
+  //   두번째 프로미스
+  //   이건 에러야
+
+  /*
+      커스텀 이터러블 이터레이터 구현하기
+    */
+
+  const iterable = function* () {
+    yield 1;
+    yield 2;
+    yield 3;
+    yield 4;
+    yield 5;
+  };
+  let iterator = iterable();
+  console.log(iterator.next()); // 1
+  console.log(iterator.next()); // 2
+  for (const a of iterator) console.log(a); // 3 4 5
+
+  for (const a of iterable()) console.log(a); // 1 2 3 4 5
+</script>
+<body>
+  live
+</body>

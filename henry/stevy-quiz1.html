@@ -3,40 +3,46 @@
   // 함수형 구현해보기
 
   // step 1) map filter reduce 구현 하기
-  const map = (predicate, array) => {
-    const result = [];
-    for (let i = 0; i < array.length; i++) {
-      result.push(predicate(array[i]));
+  const map = (f, iter) => {
+    let res = [];
+    for (const x of iter) {
+      res.push(f(x));
     }
-    return result;
+    return res;
   };
 
-  const filter = (predicate, array) => {
-    const result = [];
-    for (let i = 0; i < array.length; i++) {
-      if (predicate(array[i])) {
-        result.push(array[i]);
-      }
+  const filter = (f, iter) => {
+    let res = [];
+    for (const x of iter) {
+      if (f(x)) res.push(x);
     }
-    return result;
+    return res;
   };
 
-  const reduce = (predicate, array, initValue) => {
-    let acc = initValue ? initValue : array[0];
-    for (let i = initValue ? 0 : 1; i < array.length; i++) {
-      acc = predicate(acc, array[i]);
+  const reduce = (f, acc, iter) => {
+    if (!iter) {
+      iter = acc[Symbol.iterator]();
+      acc = iter.next().value;
+    }
+    for (const x of iter) {
+      acc = f(acc, x);
     }
     return acc;
-  }; // 인자가 2개든 3개든 다 가능하도록
+  };
+  // 인자가 2개든 3개든 다 가능하도록
 
   console.log(map((item) => item + 1, [1, 2, 3])); // 2 3 4
   console.log(filter((item) => item > 1, [1, 2, 3])); // 2 3
   console.log(reduce((acc, item) => acc + item, [1, 2, 3])); // 6
-  console.log(reduce((acc, item) => acc + item, [1, 2, 3], 9)); // 15
+  console.log(reduce((acc, item) => acc + item, 9, [1, 2, 3])); // 15
 
   // step 2) curry 함수 반영시 동작가능
-  const curry = (predicate) => (a, b) =>
-    b ? predicate(a, b) : (c) => predicate(a, c);
+  // const curry = (predicate) => (a, b) =>
+  //   b ? predicate(a, b) : (c) => predicate(a, c);
+
+  // args 1개인 경우 return f, 2개 이상인 경우 execute f
+  const curry = (f) => (a, ...args) =>
+    args.length ? f(a, ...args) : (...args) => f(a, ...args);
 
   // 인자가 2개 이상 모여야 실행하는 함수 리턴
   //  * 참고 : 커리 사용 케이스
@@ -45,6 +51,7 @@
   //   아니면 인자를 더 받아야하는 함수 리턴하고 나중에 받은 인자까지 합쳐서 실행하는 함수
 
   const mult = curry((a, b) => a * b);
+  console.log(mult);
   // 함수를 일단 등록
 
   // case1 두개 이상 등록시
@@ -56,43 +63,28 @@
   console.log(mult3(5)); // 15
   console.log(mult3(3)); // 9
 
-  const curriedMap = (predicate) => (array) => {
-    const result = [];
-    for (let i = 0; i < array.length; i++) {
-      result.push(predicate(array[i]));
-    }
-    return result;
-  };
-
-  const curriedFilter = (predicate) => (array) => {
-    const result = [];
-    for (let i = 0; i < array.length; i++) {
-      if (predicate(array[i])) {
-        result.push(array[i]);
-      }
-    }
-    return result;
-  };
-
-  const curriedReduce = (predicate, initValue) => (array) => {
-    let acc = initValue === undefined ? array[0] : initValue;
-    for (let i = initValue === undefined ? 1 : 0; i < array.length; i++) {
-      acc = predicate(acc, array[i]);
-    }
-    return acc;
-  };
+  // curry(f) convert function to use both of conventional and curreid
+  const curriedMap = curry(map);
+  const curriedFilter = curry(filter);
+  const curriedReduce = curry(reduce);
 
   console.log(curriedMap((item) => item + 1)([1, 2, 3])); // 2 3 4
   console.log(curriedFilter((item) => item > 1)([1, 2, 3])); // 2 3
   console.log(curriedReduce((acc, item) => acc + item)([1, 2, 3])); // 6
-  console.log(curriedReduce((acc, item) => acc + item, 8)([1, 2, 3])); // 6
+  console.log(curriedReduce((acc, item) => acc + item)(8, [1, 2, 3])); // 14
+  console.log(curriedReduce((acc, item) => acc + item, 8, [1, 2, 3])); // 14 => works with normal way as well
 
   // step 3) go, pipe 구현 해보기
-  const go = (list, f1, f2, f3) =>
-    f3 ? f3(f2(f1(list))) : f2 ? f2(f1(list)) : f1 ? f1(list) : false;
+  // const go = (list, f1, f2, f3) =>
+  //   f3 ? f3(f2(f1(list))) : f2 ? f2(f1(list)) : f1 ? f1(list) : false;
+  const go = (...args) => reduce((a, f) => f(a), args);
+
   // 함수 순차적으로 실행해서 값 내놓기
-  const pipe = (f1, f2, f3) => (list) =>
-    f3 ? f3(f2(f1(list))) : f2 ? f2(f1(list)) : f1 ? f1(list) : false; // 함수 순차적으로 실행할 하나의 함수 내놓기;
+  // const pipe = (f1, f2, f3) => (list) =>
+  //   f3 ? f3(f2(f1(list))) : f2 ? f2(f1(list)) : f1 ? f1(list) : false;
+  const pipe = (f, ...fs) => (...args) => go(f(...args), ...fs);
+
+  // 함수 순차적으로 실행할 하나의 함수 내놓기;
 
   console.log(
     go(
@@ -134,15 +126,15 @@
 
   const setCookieTable = pipe(
     curriedMap((sentence) => sentence.split(/,\s/)),
-    curriedFilter((cookieProperties) =>
-      ["0티어", "1티어"].includes(cookieProperties[1])
-    ),
-    curriedReduce(
-      (acc, curr) =>
-        `${acc}<tr>\n<td>${curr.join("</td>\n<td>")}</td>\n</tr>\n`,
-      ""
-    )
+    curriedFilter((cookieProperties) => parseFloat(cookieProperties[1]) <= 1.0),
+    curry(
+      curriedReduce(
+        (acc, curr) =>
+          `${acc}<tr>\n<td>${curr.join("</td>\n<td>")}</td>\n</tr>\n`
+      )
+    )("")
   );
+
   // pipe로 구현 할 것
 
   setCookieTable(cookies);

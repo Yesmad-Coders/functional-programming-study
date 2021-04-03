@@ -420,3 +420,16 @@ go(
   log
 );
 ```
+
+## 총수량, 총가격
+
+```js
+const sum = curry((f, iter) => go(iter, map(f), reduce(add)));
+
+const total_quantity = sum((p) => p.quantity);
+log(total_quantity(products));
+const total_price = sum((p) => p.price * p.quantity);
+log(total_price(products));
+
+log(sum((u) => u.age)([{ age: 30 }, { age: 20 }, { age: 10 }]));
+```
