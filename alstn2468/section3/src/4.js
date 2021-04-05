@@ -28,8 +28,10 @@ log(...over20000);
 
 /**
  * [filter 함수]
- * @param {function} f    [위임할 보조함수]
- * @param {Iterable} iter [이터레이터]
+ * @template T, U
+ * @param {function} f       [위임할 보조함수]
+ * @param {Iterable<T>} iter [이터레이터]
+ * @returns {Iterable<U>}
  */
 const filter = (f, iter) => {
   let res = [];

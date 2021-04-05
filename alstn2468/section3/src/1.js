@@ -28,8 +28,10 @@ log(prices); // [15000, 20000, 15000, 30000, 25000]
 
 /**
  * [map 함수]
- * @param {function} f    [위임할 보조함수]
- * @param {Iterable} iter [이터레이터]
+ * @template T, U
+ * @param {function} f       [위임할 보조함수]
+ * @param {Iterable<T>} iter [이터레이터]
+ * @returns {Iterable<U>}
  */
 const map = (f, iter) => {
   let res = [];
