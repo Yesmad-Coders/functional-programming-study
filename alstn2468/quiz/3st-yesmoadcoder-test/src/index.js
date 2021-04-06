@@ -88,11 +88,25 @@ new MyPromise((resolve, reject) => {
   커스텀 이터러블 이터레이터 구현하기
 */
 
-// const iterable = ;
+const iterable = {
+  [Symbol.iterator]() {
+    let i = 1;
+    return {
+      next() {
+        return i > 5
+          ? { value: undefined, done: true }
+          : { value: i++, done: false };
+      },
+      [Symbol.iterator]() {
+        return this;
+      },
+    };
+  },
+};
 
-// let iterator = ;
-// iterator.next();// 1
-// iterator.next();// 2
+let iterator = iterable[Symbol.iterator]();
+console.log(iterator.next()); // { value: 1, done: false }
+console.log(iterator.next()); // { value: 2, done: false }
 
-// for (const a of iterator) console.log(a); // 3 4 5
-// for (const a of iterable) console.log(a); // 1 2 3 4 5
+for (const a of iterator) console.log(a); // 3 4 5
+for (const a of iterable) console.log(a); // 1 2 3 4 5
