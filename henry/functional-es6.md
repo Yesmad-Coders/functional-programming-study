@@ -433,3 +433,111 @@ log(total_price(products));
 
 log(sum((u) => u.age)([{ age: 30 }, { age: 20 }, { age: 10 }]));
 ```
+
+# 지연성1
+
+## range와 느긋한 L.range
+
+### range
+
+```js
+const add = (a, b) => a + b;
+const range = (l) => {
+  let i = -1;
+  let res = [];
+  while (++i < l) {
+    // log(i, "range"); // 선언하는 순간 이미 평가되어버린다. 사실은 불필요한데도..
+    // Array => Array Iteator
+    res.push(i);
+  }
+  return res;
+};
+const list = range(4);
+log(list);
+log(reduce(add, list));
+```
+
+### 느긋한 L.range
+
+```js
+const L = {};
+L.range = function* (l) {
+  let i = -1;
+  while (++i < l) {
+    // log(i, "L.range"); // iterable.next 하기 전까지는 실제로 실행을 안한다
+    // L.range {<suspended>} (Generator and iterable) => 자기자신을 return
+    yield i;
+  }
+};
+L.list = L.range(4);
+log(L.list);
+log(reduce(add, L.list));
+```
+
+### testing
+
+```js
+const test = (name, time, f) => {
+  console.time(name);
+  while (time--) f();
+  console.timeEnd(name);
+};
+// test("range", 10, () => reduce(add, range(1000000)));
+// test("L.range", 10, () => reduce(add, L.range(1000000))); // 처음에는 더 빨랐는데..
+```
+
+## Take
+
+```js
+const take = curry((l, iter) => {
+  let res = [];
+  for (const a of iter) {
+    res.push(a);
+    if (res.length == l) return res;
+  }
+  return res;
+});
+console.time("");
+go(range(1000000), take(5), reduce(add), log);
+console.timeEnd("");
+console.time("");
+go(L.range(1000000), take(5), reduce(add), log); // 배열이 커질 수록 지연성 iterator가 유리
+console.timeEnd("");
+```
+
+# 제너레이터/이터레이터 프로토콜로 구현하는 지연 평가 (Lazy Evalution)
+
+- 제때 계산법
+- 느긋한 계산법
+- 제너레이터/이터레이터 프로토콜을 기반으로 구현
+
+## L.map
+
+```js
+L = {};
+L.map = function* (f, iter) {
+  for (const a of iter) yield f(a);
+};
+var it = L.map((a) => a + 10, [1, 2, 3, 4]);
+log(it.next());
+log(it.next().value);
+log([...it]);
+```
+
+## L.filter
+
+```js
+L.filter = function* (f, iter) {
+  for (const a of iter) if (f(a)) yield a;
+};
+var it = L.filter((a) => a % 2, [1, 2, 3, 4]);
+log(it.next());
+log(it.next());
+```
+
+## map, filter 계열 함수들이 가지는 결함 법칙
+
+- 사용하는 데이터가 무엇이든지
+- 사용하는 보조 함수가 순수 함수라면 무엇이든지
+- 아래와 같이 결합한다면 둘 다 결과가 같다.
+  [[mapping, mapping], [filtering, filtering], [mapping, mapping]]
