@@ -1,5 +1,7 @@
 import 'regenerator-runtime/runtime';
-import log from '../../lib/log';
-import { go, reduce, map, curry } from '../../lib/fx';
 
 // 제너레이터/이터레이터 프로토콜로 구현하는 지연 평가
+// 이터러블 중심 프로그래밍에서의 지연 평가 (Lazy Evaluation)
+// - 제때 계산법
+// - 느긋한 계산법
+// - 제너레이터/이터레이터 프로토콜을 기반으로 구현
