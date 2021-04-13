@@ -57,6 +57,34 @@ const reduce = curry((f, acc, iter) => {
 });
 
 /**
+ * [take 함수]
+ * @template T
+ * @param {number} l [이터레이터에서 뽑을 갯수]
+ * @param {Iterable<T>} iter [이터레이터]
+ * @returns {Iterable<U>}
+ */
+const take = curry((l, iter) => {
+  let res = [];
+  for (const a of iter) {
+    res.push(a);
+    if (res.length == l) return res;
+  }
+  return res;
+});
+
+/**
+ * [range 함수]
+ * @param {number} l [생성할 값의 갯수]
+ * @returns {Iterable<number>}
+ */
+const range = (l) => {
+  let i = -1;
+  let result = [];
+  while (++i < l) result.push(i);
+  return result;
+};
+
+/**
  * [go 함수]
  * @template T, U
  * @param {[T, ...funcs: Array<Function>]} args [초기값, 보조함수 배열]
@@ -73,4 +101,4 @@ const go = (...args) => reduce((a, f) => f(a), args);
  */
 const pipe = (f, ...funcs) => (...args) => go(f(...args), ...funcs);
 
-export { map, filter, reduce, go, pipe, curry };
+export { range, take, map, filter, reduce, go, pipe, curry };
