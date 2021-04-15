@@ -535,9 +535,261 @@ log(it.next());
 log(it.next());
 ```
 
+## try manual `for ~ of`
+
+```js
+const map = curry((f, iter) => {
+  let res = [];
+  // for (const a of iter) {
+  // <==== convert to manual for ~ of
+  iter = iter[Symbol.iterator]();
+  let cur;
+  while (!(cur = iter.next()).done) {
+    const a = cur.value;
+    // ====>
+    res.push(f(a));
+  }
+  return res;
+});
+```
+
+## range 와 L.range의 실행 순서 차이
+
+```js
+go(
+  range(10),
+  map((n) => n + 10),
+  filter((n) => n % 2),
+  take(2),
+  log
+);
+go(
+  L.range(10),
+  map((n) => n + 10),
+  filter((n) => n % 2),
+  take(2),
+  log
+);
+```
+
+### range
+
+- 가로로 모두 평가하고 ([1..10]) 다음 함수로 내려간다.
+
+### L.range
+
+- 세로로평가한다.
+
+1. range, map, filter는 모두 generator를 받으므로 평가를 지연시킨다.(suspended)
+2. take에서 처음으로 iter.next()를 수행 시 그 iter를 보낸 filter로 올라간다.
+3. filter에서 iter.next() 수행 시 map으로 올라감
+4. map에서 iter.next() 수행 시 range로 가서 최초의 yield 수행
+5. yield된 값을 map, filter, take 순으로 내려서 평가한다.
+
+## 엄격한 계산과 느긋한 계산의 효율성 비교
+
+- 느긋한 계산의 경우 배열이 커지더라도, 심지어 Infinity 여도 2개 take 할때까지만 실행하므로 성능상의 차이가 없다.
+
 ## map, filter 계열 함수들이 가지는 결함 법칙
 
 - 사용하는 데이터가 무엇이든지
 - 사용하는 보조 함수가 순수 함수라면 무엇이든지
 - 아래와 같이 결합한다면 둘 다 결과가 같다.
   [[mapping, mapping], [filtering, filtering], [mapping, mapping]]
+  =
+  [[mapping, filtering, mapping], [mapping, filtering, mapping]]
+
+## ES6의 기본 규악을 통해 구현하는 지연 평가의 장점
+
+- 각 library별로 별도의 지연성을 구현하지 않고 JS의 규약을 통해 데이터와 함수 모두 서로 호환 가능
+
+# 지연성 2
+
+## 결과를 만드는 함수 reduce, take
+
+- map, filter 이후에 연산의 시작점을 알리는 함수
+
+## QueryStr 함수 만들기
+
+```js
+const join = curry((sep = ",", iter) =>
+  reduce((a, b) => `${a}${sep}${b}`, iter)
+);
+
+// array가 아니여도 모든 iterable에 사용 가능한 join => 지연성을 가진 L.map도 사용가능하게 함
+// function* a() {
+//   yield 10;
+//   yield 11;
+// }
+// log(join("-", a()));
+
+const queryStr =
+  //  (obj) =>
+  // go(
+  //   obj,
+  // 그대로 obj 전달하기때문에 pipe 사용도 가능
+  pipe(
+    L.entries, // Object.entries,
+    L.map(([k, v]) => `${k}=${v}`), // use L.map instread of Array.map
+    (a) => {
+      // Generator {<suspended>} 확인 가능
+      console.log(a);
+      return a;
+    },
+    join("&")
+  );
+log(queryStr({ limit: 10, offset: 10, type: "notice" }));
+```
+
+## take, find
+
+```js
+const users = [{ age: 28 }, { age: 29 }, { age: 30 }, { age: 31 }];
+const find = curry((f, iter) => go(iter, L.filter(f), take(1), ([a]) => a));
+log(find((u) => u.age < 30)(users));
+
+// +eg)
+go(
+  users,
+  L.map((u) => u.age),
+  find((n) => n < 30),
+  log
+);
+```
+
+## L.map, L.filter로 map과 filter 만들기
+
+```js
+const takeAll = take(Infinity);
+// const map = curry((f, iter) => go(iter, L.map(f), takeAll));
+// const map = curry((f, iter) => go(L.map(f, iter), takeAll)); // args 를 그대로 사용하므로 pipe가자
+const map = curry(pipe(L.map, takeAll));
+const filter = curry(pipe(L.filter, takeAll));
+log(map((a) => a + 10, L.range(4)));
+log(filter((a) => a % 2, L.range(4)));
+```
+
+## L.flatten, flatten, deepFlatten
+
+```js
+const isIterable = (a) => a && a[Symbol.iterator];
+
+L.flatten = function* (iter) {
+  for (const a of iter) {
+    // if (isIterable(a)) for (const b of a) yield b;
+    if (isIterable(a)) yield* a;
+    else yield a;
+  }
+};
+const it = L.flatten([[1, 2], 3, 4, [5, 6], [7, 8, 9]]);
+log(it.next());
+log([...it]);
+log(take(3, L.flatten([[1, 2], 3, 4, [5, 6], [7, 8, 9]])));
+
+const flatten = pipe(L.flatten, takeAll);
+log(flatten([[1, 2], 3, 4, [5, 6], [7, 8]]));
+
+L.deepFlat = function* f(iter) {
+  for (const a of iter) {
+    if (isIterable(a)) yield* f(a);
+    else yield a;
+  }
+};
+log([...L.deepFlat([1, [2, [3, 4], [[5]]]])]);
+```
+
+## flatMap
+
+```js
+// 기본 flat 사용법
+log([[1, 2], [3, 4], [5, 6, 7], [8]].flatMap((a) => a));
+// flat 내에서 map 사용
+log([[1, 2], [3, 4], [5, 6, 7], [8]].flatMap((a) => a.map((b) => b * b)));
+// 구현-1_map
+log([[1, 2], [3, 4], [5, 6, 7], [8]].map((a) => a.map((b) => b * b)));
+// 구현-2_map+flatten
+log(flatten([[1, 2], [3, 4], [5, 6, 7], [8]].map((a) => a.map((b) => b * b)))); // 하지만 전체 순회를 두 번 하므로 비효율적
+
+L.flatMap = curry(pipe(L.map, L.flatten));
+const flatMap = curry(pipe(L.map, flatten)); // takeAll with flatten
+
+log(...L.flatMap((a) => a, [[1, 2], [3, 4], [5, 6, 7], [8]]));
+log(flatMap((a) => a, [[1, 2], [3, 4], [5, 6, 7], [8]]));
+
+log(...L.flatMap(L.range, [1, 2, 3])); // 단순히 조회하는게 아니라 추가 함수 적용
+```
+
+## 2차원 배열 다루기
+
+```js
+const arr = [
+  [1, 2],
+  [3, 4, 5],
+  [6, 7, 8],
+  [9, 10],
+];
+go(
+  arr,
+  L.flatten,
+  L.filter((a) => a % 2),
+  L.map((a) => a * a),
+  take(4),
+  reduce(add),
+  log
+);
+```
+
+## 지연성 / 이터러블 중심 프로그래밍 실무적인 코드
+
+```js
+var users = [
+  {
+    name: "a",
+    age: 21,
+    family: [
+      { name: "a1", age: 53 },
+      { name: "a2", age: 47 },
+      { name: "a3", age: 16 },
+      { name: "a4", age: 15 },
+    ],
+  },
+  {
+    name: "b",
+    age: 24,
+    family: [
+      { name: "b1", age: 58 },
+      { name: "b2", age: 51 },
+      { name: "b3", age: 19 },
+      { name: "b4", age: 22 },
+    ],
+  },
+  {
+    name: "c",
+    age: 31,
+    family: [
+      { name: "c1", age: 64 },
+      { name: "c2", age: 62 },
+    ],
+  },
+  {
+    name: "d",
+    age: 20,
+    family: [
+      { name: "d1", age: 42 },
+      { name: "d2", age: 42 },
+      { name: "d3", age: 11 },
+      { name: "d4", age: 7 },
+    ],
+  },
+];
+
+go(
+  users,
+  L.flatMap((u) => u.family),
+  L.filter((u) => u.age > 20),
+  L.map((u) => u.age),
+  take(4),
+  reduce(add),
+  log
+);
+```
