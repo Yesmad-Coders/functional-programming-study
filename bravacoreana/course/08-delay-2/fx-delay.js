@@ -56,28 +56,28 @@ const range = (l) => {
   return res;
 };
 
-const map = curry((f, iter) => {
-  let res = [];
-  // for of 문을 명령형으로 구성한 것
-  iter = iter[Symbol.iterator]();
-  let cur;
-  while (!(cur = iter.next()).done) {
-    const a = cur.value;
-    res.push(f(a));
-  }
-  return res;
-});
+// const map = curry((f, iter) => {
+//   let res = [];
+//   // for of 문을 명령형으로 구성한 것
+//   iter = iter[Symbol.iterator]();
+//   let cur;
+//   while (!(cur = iter.next()).done) {
+//     const a = cur.value;
+//     res.push(f(a));
+//   }
+//   return res;
+// });
 
-const filter = curry((f, iter) => {
-  let res = [];
-  iter = iter[Symbol.iterator]();
-  let cur;
-  while (!(cur = iter.next()).done) {
-    const a = cur.value;
-    if (f(a)) res.push(a);
-  }
-  return res;
-});
+// const filter = curry((f, iter) => {
+//   let res = [];
+//   iter = iter[Symbol.iterator]();
+//   let cur;
+//   while (!(cur = iter.next()).done) {
+//     const a = cur.value;
+//     if (f(a)) res.push(a);
+//   }
+//   return res;
+// });
 
 const take = curry((l, iter) => {
   let res = [];
@@ -113,22 +113,36 @@ L.range = function* (l) {
   }
 };
 
+// L.map = curry(function* (f, iter) {
+//   iter = iter[Symbol.iterator]();
+//   let cur;
+//   while (!(cur = iter.next()).done) {
+//     const a = cur.value;
+//     yield f(a);
+//   }
+// });
+
+// L.filter = curry(function* (f, iter) {
+//   iter = iter[Symbol.iterator]();
+//   let cur;
+//   while (!(cur = iter.next()).done) {
+//     const a = cur.value;
+//     if (f(a)) {
+//       yield a;
+//     }
+//   }
+// });
+
+// 05-map-filter 참고
+
 L.map = curry(function* (f, iter) {
-  iter = iter[Symbol.iterator]();
-  let cur;
-  while (!(cur = iter.next()).done) {
-    const a = cur.value;
-    yield f(a);
-  }
+  for (const a of iter) yield f(a);
 });
 
 L.filter = curry(function* (f, iter) {
-  iter = iter[Symbol.iterator]();
-  let cur;
-  while (!(cur = iter.next()).done) {
-    const a = cur.value;
-    if (f(a)) {
-      yield a;
-    }
-  }
+  for (const a of iter) if (f(a)) yield a;
 });
+
+const takeAll = take(Infinity);
+const map = curry(pipe(L.map, takeAll));
+const filter = curry(pipe(L.filter, takeAll));
