@@ -1,3 +1,5 @@
+// Liha's answer
+
 const log = console.log;
 
 const curry = (f) => (...arr) =>
@@ -113,7 +115,7 @@ const FILTER_LIST = ["0티어", "1티어"];
 const filterCookie = filter(
   (cookie) => cookie.includes(WORD) || cookie.includes(WORD2),
   cookies
-);
+); // 확장성의 한계가 있어서 고민 🤔
 
 // const filterCookie = filter(
 //   (cookie) => map((word) => word.includes(cookie), FILTER_LIST),
@@ -149,6 +151,36 @@ log(reduceList);
 const setCookieTable = pipe(
   filter((cookie) => map((word) => word.includes(cookie), FILTER_LIST)),
   // filter((cookie) => cookie.includes(WORD) || cookie.includes(WORD2)),
+  map((array) => array.split(",")),
+  map((array) => map((element) => `<td>${element.trim()}</td>`, array)),
+  map((array) => array.toString().replace(/,/g, "")),
+  map((array) => `<tr>${array}</tr>`),
+  reduce((acc, array) => acc + array)
+);
+
+// 민수님 코드
+const setCookieTable_Minsu = pipe(
+  filter((cookie) =>
+    // word.includes(cookie) -> cookie.includes(word)
+    map((word) => cookie.includes(word), FILTER_LIST).some(Boolean)
+  ),
+  map((array) => array.split(",")),
+  map((array) => map((element) => `<td>${element.trim()}</td>`, array)),
+  map((array) => array.toString().replace(/,/g, "")),
+  map((array) => `<tr>${array}</tr>`),
+  reduce((acc, array) => acc + array)
+);
+
+// 스티비님 코드
+const filterCookie_Stevy = filter(
+  (cookie) => FILTER_LIST.some((filterItem) => cookie.includes(filterItem)),
+  cookies
+);
+
+const setCookieTable_Stevy = pipe(
+  filter((cookie) =>
+    FILTER_LIST.some((filterItem) => cookie.includes(filterItem))
+  ),
   map((array) => array.split(",")),
   map((array) => map((element) => `<td>${element.trim()}</td>`, array)),
   map((array) => array.toString().replace(/,/g, "")),
