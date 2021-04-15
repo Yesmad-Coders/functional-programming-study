@@ -1,0 +1,25 @@
+{
+  "name": "section5",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "start-one": "parcel 1.html --open",
+    "start-two": "parcel 2.html --open"
+  },
+  "dependencies": {
+    "parcel-bundler": "^1.6.1"
+  },
+  "devDependencies": {
+    "@babel/core": "7.2.0"
+  },
+  "resolutions": {
+    "@babel/preset-env": "7.13.8"
+  },
+  "browserslist": [
+    "last 3 and_chr versions",
+    "last 3 chrome versions",
+    "last 3 opera versions",
+    "last 3 ios_saf versions",
+    "last 3 safari versions"
+  ]
+}
