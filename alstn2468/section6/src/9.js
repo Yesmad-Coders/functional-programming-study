@@ -1,5 +1,25 @@
 import 'regenerator-runtime/runtime';
+import L from '../../lib/L';
 import log from '../../lib/log';
-import { go, reduce, map, curry } from '../../lib/fx';
+import { go, map, filter, take, range } from '../../lib/fx';
 
-// 엄격한 계산과 느긋한 계산의 효율성 비교
+console.time('');
+go(
+  range(10000),
+  map((n) => n + 10),
+  filter((n) => n % 2),
+  take(10),
+  log
+);
+console.timeEnd(''); // : 5.348876953125 ms
+
+// take의 수만큼만 함수들이 평가된다.
+console.time('L');
+go(
+  L.range(10000),
+  L.map((n) => n + 10),
+  L.filter((n) => n % 2),
+  take(10),
+  log
+);
+console.timeEnd('L'); // L: 0.4248046875 ms
