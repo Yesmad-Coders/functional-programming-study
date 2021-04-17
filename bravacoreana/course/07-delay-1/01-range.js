@@ -6,7 +6,7 @@
 // log(range(5)); // [0,1,2,3,4]
 // log(range(2)); // [0,1]
 
-log("------01.range------");
+log("🔸 01.range 🔸");
 const range = (length) => {
   let i = -1;
   let res = [];
