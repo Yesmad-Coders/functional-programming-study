@@ -1,4 +1,12 @@
 import 'regenerator-runtime/runtime';
-import L from '../../lib/L';
 import log from '../../lib/log';
-import { go, map, filter, take, range } from '../../lib/fx';
+import { pipe, map, reduce } from '../../lib/fx';
+
+// queryStr 함수 만들기
+const queryStr = pipe(
+  Object.entries,
+  map(([key, value]) => `${key}=${value}`),
+  reduce((a, b) => `${a}&${b}`)
+);
+log(queryStr({ limit: 10, offset: 10, type: 'notice' }));
+// limit=10&offset=10&type=notice
