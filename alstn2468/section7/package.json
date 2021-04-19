@@ -1,0 +1,33 @@
+{
+  "name": "section7",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "start-one": "parcel 1.html --open",
+    "start-two": "parcel 2.html --open",
+    "start-three": "parcel 3.html --open",
+    "start-four": "parcel 4.html --open",
+    "start-five": "parcel 5.html --open",
+    "start-six": "parcel 6.html --open",
+    "start-seven": "parcel 7.html --open",
+    "start-eight": "parcel 8.html --open",
+    "start-nine": "parcel 9.html --open",
+    "start-ten": "parcel 10.html --open"
+  },
+  "dependencies": {
+    "parcel-bundler": "^1.6.1"
+  },
+  "devDependencies": {
+    "@babel/core": "7.2.0"
+  },
+  "resolutions": {
+    "@babel/preset-env": "7.13.8"
+  },
+  "browserslist": [
+    "last 3 and_chr versions",
+    "last 3 chrome versions",
+    "last 3 opera versions",
+    "last 3 ios_saf versions",
+    "last 3 safari versions"
+  ]
+}
