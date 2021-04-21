@@ -8,20 +8,32 @@ const { log } = console;
 //   { name: "바지", price: 25000, quantity: 5, is_selected: false },
 // ];
 
+const add = (a, b) => a + b;
+
 const curry = (f) => (a, ..._) =>
   _.length ? f(a, ..._) : (..._) => f(a, ..._);
 
-const map = curry((f, iter) => {
+const map_1 = curry((f, iter) => {
   let res = [];
-  for (const a of iter) {
+  // for (const a of iter) {
+  // <==== convert to manual for ~ of
+  iter = iter[Symbol.iterator]();
+  let cur;
+  while (!(cur = iter.next()).done) {
+    const a = cur.value;
+    // ====>
     res.push(f(a));
   }
   return res;
 });
 
-const filter = curry((f, iter) => {
+const filter_1 = curry((f, iter) => {
   let res = [];
-  for (const a of iter) {
+  // for (const a of iter) {
+  iter = iter[Symbol.iterator]();
+  let cur;
+  while (!(cur = iter.next()).done) {
+    const a = cur.value;
     if (f(a)) res.push(a);
   }
   return res;
@@ -31,12 +43,97 @@ const reduce = curry((f, acc, iter) => {
   if (!iter) {
     iter = acc[Symbol.iterator]();
     acc = iter.next().value;
+  } else {
+    iter = iter[Symbol.iterator]();
   }
-  for (const x of iter) {
-    acc = f(acc, x);
+  // for (const a of iter) {
+  let cur;
+  while (!(cur = iter.next()).done) {
+    const a = cur.value;
+    acc = f(acc, a);
   }
   return acc;
 });
 
 const go = (...args) => reduce((a, f) => f(a), args);
 const pipe = (f, ...fs) => (...args) => go(f(...args), ...fs); // fs = functions...
+
+const range = (l) => {
+  let i = -1;
+  let res = [];
+  while (++i < l) {
+    res.push(i);
+  }
+  return res;
+};
+
+const L = {};
+L.range = function* (l) {
+  let i = -1;
+  while (++i < l) {
+    yield i;
+  }
+};
+
+const take = curry((l, iter) => {
+  let res = [];
+  // for (const a of iter) {
+  iter = iter[Symbol.iterator]();
+  let cur;
+  while (!(cur = iter.next()).done) {
+    const a = cur.value;
+    res.push(a);
+    if (res.length == l) return res;
+  }
+  return res;
+});
+
+L.map = curry(function* (f, iter) {
+  for (const a of iter) {
+    // iter = iter[Symbol.iterator]();
+    // let cur;
+    // while (!(cur = iter.next()).done) {
+    //   const a = cur.value;
+    yield f(a);
+  }
+});
+
+L.filter = curry(function* (f, iter) {
+  for (const a of iter) {
+    // iter = iter[Symbol.iterator]();
+    // let cur;
+    // while (!(cur = iter.next()).done) {
+    //   const a = cur.value;
+    if (f(a)) yield a;
+  }
+});
+
+L.entries = function* (obj) {
+  for (const k in obj) yield [k, obj[k]];
+};
+
+const takeAll = take(Infinity);
+const map = curry(pipe(L.map, takeAll));
+const filter = curry(pipe(L.filter, takeAll));
+
+const isIterable = (a) => a && a[Symbol.iterator];
+
+L.flatten = function* (iter) {
+  for (const a of iter) {
+    // if (isIterable(a)) for (const b of a) yield b;
+    if (isIterable(a)) yield* a;
+    else yield a;
+  }
+};
+
+const flatten = pipe(L.flatten, takeAll);
+
+L.deepFlat = function* f(iter) {
+  for (const a of iter) {
+    if (isIterable(a)) yield* f(a);
+    else yield a;
+  }
+};
+
+L.flatMap = curry(pipe(L.map, L.flatten));
+const flatMap = curry(pipe(L.map, flatten)); // takeAll with flatten

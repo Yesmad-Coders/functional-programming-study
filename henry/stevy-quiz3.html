@@ -55,20 +55,26 @@
   /*
       커스텀 이터러블 이터레이터 구현하기
     */
-
-  const iterable = function* () {
-    yield 1;
-    yield 2;
-    yield 3;
-    yield 4;
-    yield 5;
+  const iterable = {
+    [Symbol.iterator]() {
+      let i = 0;
+      return {
+        next: () => {
+          const isDone = i === 5;
+          return { value: isDone ? undefined : ++i, done: isDone };
+        },
+        [Symbol.iterator]() {
+          return this;
+        },
+      };
+    },
   };
-  let iterator = iterable();
-  console.log(iterator.next()); // 1
-  console.log(iterator.next()); // 2
-  for (const a of iterator) console.log(a); // 3 4 5
+  let iterator = iterable[Symbol.iterator]();
+  log(iterator.next()); // 1
+  log(iterator.next()); // 2
 
-  for (const a of iterable()) console.log(a); // 1 2 3 4 5
+  for (const a of iterator) console.log(a); // 3 4 5
+  for (const a of iterable) console.log(a); // 1 2 3 4 5
 </script>
 <body>
   live
