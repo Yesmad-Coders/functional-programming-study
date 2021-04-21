@@ -3,5 +3,29 @@
   live-server
   <div id="cart"></div>
   <script>
+    const g = (a) => a + 1;
+    const f = (a) => a * a;
+    log(f(g(1)));
+    log(f(g())); // 빈 값 전달시 에러, 잘못된 값을 그대로 log
+    // 들어올 값을 예측할 수 없을때 어떻게 안정성을 가질 것인가?
+    // [1] = Array.of(1)
+    Array.of(1)
+      .map(g)
+      .map(f)
+      .forEach((r) => log(r)); // 실제 사용자에게 효과를 전달하는것은 forEach
+    []
+      .map(g)
+      .map(f)
+      .forEach((r) => log(r)); // elem 없으면 수행 안한다, 값이 몇개일지, 없을지 모르는 상황들에 대한 안정성
+
+    Promise.resolve(2)
+      .then(g)
+      .then(f)
+      .then((r) => log(r));
+
+    new Promise((resolve) => setTimeout(() => resolve(2), 100))
+      .then(g)
+      .then(f)
+      .then((r) => log(r)); // 값이 있거나 없거나가 아닌 대기인지 성공인지의 상황들에 대한 안정성
   </script>
 </body>
