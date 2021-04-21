@@ -793,3 +793,99 @@ go(
   log
 );
 ```
+
+# 비동기:동시성 프로그래밍 1
+
+## callback과 Promise
+
+1. 전통적인 callback 패턴
+2. Promise method chain을 통한 함수 합성
+3. Promise 기반의 async, await
+
+## 비동기를 값으로 만드는 Promise
+
+```js
+// 전통적인 callback 패턴
+const add10 = (a, callback) => {
+  setTimeout(() => callback(a + 10), 1000);
+};
+const a = add10(5, (res) => {
+  add10(5, (res) => {
+    add10(5, (res) => {
+      log(res);
+    });
+  });
+});
+log(a); // => undefined
+```
+
+- setTimeout과 callback을 사용한다는 context만 남아있을 뿐 return value 가 없음
+
+```js
+// Promise를 'return'
+const add20 = (a) => {
+  return new Promise((resolve) => setTimeout(() => resolve(a + 20), 1000));
+};
+const b = add20(5).then(add20).then(add20).then(log);
+log(b); // => Promise <pending>
+```
+
+- Promise 방식이 chaining 하기 쉽다.
+- 하지만 꺼내오기 쉬운게 중요한게 아니다 => `비동기 상황을 [대기,성공,실패]의 상태를 가지는 first-class value로 다룰 수 있다는 점이 중요`
+- 즉시 Promise {<pending>} 을 return => `비동기상황을 값으로 다뤄서 resolve 이후 추가작업을 연결지어 할 수 있다.`
+- `값으로 다룰 수 있다` => first-class
+
+## 값으로서의 Promise 활용
+
+```js
+const go1 = (a, f) => (a instanceof Promise ? a.then(f) : f(a));
+const add5 = (a) => a + 5;
+const delay100 = (a) =>
+  new Promise((resolve) => setTimeout(() => resolve(a), 100));
+
+// 동기적으로 바로 값을 알 수 있어야 작동 (Promise가 아니여야)
+// const r = go1(10, add5);
+// log(r);
+const n1 = 10;
+go1(go1(n1, add5), log);
+
+// Promise는 작동불가 => [object Promise]5
+// const r2 = go1(delay100(10), add5);
+// r2.then(log);
+const n2 = delay100(10);
+go1(go1(n2, add5), log);
+```
+
+## 합성 관점에서의 Promise와 모나드
+
+- 모나드: 함수 합성을 상황에 따라 안전하게?
+- [1] 박스안에서 함수 합성을 안전하게
+- f . g = f(g(x))
+- 그중에서도 비동기 상황을 안전하게 합성해주는것이 => Promise
+
+```js
+const g = (a) => a + 1;
+const f = (a) => a * a;
+log(f(g(1)));
+log(f(g())); // 빈 값 전달시 에러, 잘못된 값을 그대로 log
+// 들어올 값을 예측할 수 없을때 어떻게 안정성을 가질 것인가?
+// [1] = Array.of(1)
+Array.of(1)
+  .map(g)
+  .map(f)
+  .forEach((r) => log(r)); // 실제 사용자에게 효과를 전달하는것은 forEach
+[]
+  .map(g)
+  .map(f)
+  .forEach((r) => log(r)); // elem 없으면 수행 안한다, 값이 몇개일지, 없을지 모르는 상황들에 대한 안정성
+
+Promise.resolve(2)
+  .then(g)
+  .then(f)
+  .then((r) => log(r));
+
+new Promise((resolve) => setTimeout(() => resolve(2), 100))
+  .then(g)
+  .then(f)
+  .then((r) => log(r)); // 값이 있거나 없거나가 아닌 대기인지 성공인지의 상황들에 대한 안정성
+```
