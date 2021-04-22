@@ -22,10 +22,10 @@
 - 함수를 인자로 받아서 실행하는 함수
   - apply1
   ```js
-  const apply1 = (f) => f(1);
-  const add2 = (a) => a + 2;
+  const apply1 = f => f(1);
+  const add2 = a => a + 2;
   log(apply1(add2));
-  log(apply1((a) => a - 1));
+  log(apply1(a => a - 1));
   ```
   -times;
   ```js
@@ -34,12 +34,12 @@
     while (++i < n) f(i);
   };
   times(log, 3);
-  times((a) => log(a + 10), 3);
+  times(a => log(a + 10), 3);
   ```
 - 함수(Closure)를 만들어 리턴하는 함수(currying?)
   - addMaker
   ```js
-  addMaker = (a) => (b) => a + b; // Closure: 기억 된 환경 a와 {a+b} 라는 함수를 통칭
+  addMaker = a => b => a + b; // Closure: 기억 된 환경 a와 {a+b} 라는 함수를 통칭
   const add10 = addMaker(10);
   log(add10(5));
   log(add10(10));
@@ -205,7 +205,7 @@ const map = (f, iter) => {
   }
   return res;
 };
-console.log(map((p) => p.name, products));
+console.log(map(p => p.name, products));
 ```
 
 ## Iterable map의 다형성
@@ -213,7 +213,7 @@ console.log(map((p) => p.name, products));
 1. DOM 가능
 
 ```js
-console.log(map((el) => el.nodeName, document.querySelectorAll("*")));
+console.log(map(el => el.nodeName, document.querySelectorAll("*")));
 ```
 
 2. generator도 가능
@@ -224,7 +224,7 @@ function* gen() {
   if (false) yield 3;
   yield 4;
 }
-console.log(map((a) => a * a, gen()));
+console.log(map(a => a * a, gen()));
 
 let m = new Map();
 m.set("a", 10);
@@ -251,11 +251,11 @@ const filter = (f, iter) => {
   return res;
 };
 
-console.log(filter((p) => p.price > 20000, products));
-console.log(filter((n) => n % 2, [1, 2, 3, 4]));
+console.log(filter(p => p.price > 20000, products));
+console.log(filter(n => n % 2, [1, 2, 3, 4]));
 console.log(
   filter(
-    (n) => n % 2,
+    n => n % 2,
     (function* () {
       yield 1;
       yield 2;
@@ -310,8 +310,8 @@ log(
   reduce(
     add,
     map(
-      (p) => p.price,
-      filter((p) => p.price < 20000, products)
+      p => p.price,
+      filter(p => p.price < 20000, products)
     )
   )
 );
@@ -329,25 +329,25 @@ const pipe = (f, ...fs) => (...args) => go(f(...args), ...fs); // fs = functions
 const add = (a, b) => a + b;
 go(
   add(0, 1),
-  (a) => a + 1,
-  (a) => a + 10,
-  (a) => a + 100,
+  a => a + 1,
+  a => a + 10,
+  a => a + 100,
   log
 ); // 111
 const f = pipe(
   add,
-  (a) => a + 1,
-  (a) => a + 10,
-  (a) => a + 100,
+  a => a + 1,
+  a => a + 10,
+  a => a + 100,
   log
 );
 f(0, 1); // 111
 
 go(
   products,
-  (products) => filter((p) => p.price < 20000, products),
-  (products) => map((p) => p.price, products),
-  (prices) => reduce(add, prices),
+  products => filter(p => p.price < 20000, products),
+  products => map(p => p.price, products),
+  prices => reduce(add, prices),
   log
 );
 ```
@@ -355,8 +355,7 @@ go(
 ## Curry
 
 ```js
-const curry = (f) => (a, ..._) =>
-  _.length ? f(a, ..._) : (..._) => f(a, ..._);
+const curry = f => (a, ..._) => (_.length ? f(a, ..._) : (..._) => f(a, ..._));
 
 const mult = curry((a, b) => a * b);
 log(mult(3)(2));
@@ -373,8 +372,8 @@ log(
   reduce(
     add,
     map(
-      (p) => p.price,
-      filter((p) => p.price < 20000, products)
+      p => p.price,
+      filter(p => p.price < 20000, products)
     )
   )
 );
@@ -382,17 +381,17 @@ log(
 // go 를 통해 순서를 바꿈
 go(
   products,
-  (products) => filter((p) => p.price < 20000, products),
-  (products) => map((p) => p.price, products),
-  (prices) => reduce(add, prices),
+  products => filter(p => p.price < 20000, products),
+  products => map(p => p.price, products),
+  prices => reduce(add, prices),
   log
 );
 
 // curry를 씌운 filter, map, reduce는 function return 하므로 앞의 array를 바로바로 받을 수 있다.
 go(
   products,
-  filter((p) => p.price < 20000),
-  map((p) => p.price),
+  filter(p => p.price < 20000),
+  map(p => p.price),
   reduce(add),
   log
 );
@@ -402,21 +401,21 @@ go(
 
 ```js
 const total_price = pipe(
-  map((p) => p.price),
+  map(p => p.price),
   reduce(add)
 );
 
-const base_total_price = (predicate) => pipe(filter(predicate), total_price);
+const base_total_price = predicate => pipe(filter(predicate), total_price);
 
 go(
   products,
-  base_total_price((p) => p.price < 20000),
+  base_total_price(p => p.price < 20000),
   log
 );
 
 go(
   products,
-  base_total_price((p) => p.price >= 20000),
+  base_total_price(p => p.price >= 20000),
   log
 );
 ```
@@ -426,12 +425,12 @@ go(
 ```js
 const sum = curry((f, iter) => go(iter, map(f), reduce(add)));
 
-const total_quantity = sum((p) => p.quantity);
+const total_quantity = sum(p => p.quantity);
 log(total_quantity(products));
-const total_price = sum((p) => p.price * p.quantity);
+const total_price = sum(p => p.price * p.quantity);
 log(total_price(products));
 
-log(sum((u) => u.age)([{ age: 30 }, { age: 20 }, { age: 10 }]));
+log(sum(u => u.age)([{ age: 30 }, { age: 20 }, { age: 10 }]));
 ```
 
 # 지연성1
@@ -442,7 +441,7 @@ log(sum((u) => u.age)([{ age: 30 }, { age: 20 }, { age: 10 }]));
 
 ```js
 const add = (a, b) => a + b;
-const range = (l) => {
+const range = l => {
   let i = -1;
   let res = [];
   while (++i < l) {
@@ -518,7 +517,7 @@ L = {};
 L.map = function* (f, iter) {
   for (const a of iter) yield f(a);
 };
-var it = L.map((a) => a + 10, [1, 2, 3, 4]);
+var it = L.map(a => a + 10, [1, 2, 3, 4]);
 log(it.next());
 log(it.next().value);
 log([...it]);
@@ -530,7 +529,7 @@ log([...it]);
 L.filter = function* (f, iter) {
   for (const a of iter) if (f(a)) yield a;
 };
-var it = L.filter((a) => a % 2, [1, 2, 3, 4]);
+var it = L.filter(a => a % 2, [1, 2, 3, 4]);
 log(it.next());
 log(it.next());
 ```
@@ -558,15 +557,15 @@ const map = curry((f, iter) => {
 ```js
 go(
   range(10),
-  map((n) => n + 10),
-  filter((n) => n % 2),
+  map(n => n + 10),
+  filter(n => n % 2),
   take(2),
   log
 );
 go(
   L.range(10),
-  map((n) => n + 10),
-  filter((n) => n % 2),
+  map(n => n + 10),
+  filter(n => n % 2),
   take(2),
   log
 );
@@ -631,7 +630,7 @@ const queryStr =
   pipe(
     L.entries, // Object.entries,
     L.map(([k, v]) => `${k}=${v}`), // use L.map instread of Array.map
-    (a) => {
+    a => {
       // Generator {<suspended>} 확인 가능
       console.log(a);
       return a;
@@ -646,13 +645,13 @@ log(queryStr({ limit: 10, offset: 10, type: "notice" }));
 ```js
 const users = [{ age: 28 }, { age: 29 }, { age: 30 }, { age: 31 }];
 const find = curry((f, iter) => go(iter, L.filter(f), take(1), ([a]) => a));
-log(find((u) => u.age < 30)(users));
+log(find(u => u.age < 30)(users));
 
 // +eg)
 go(
   users,
-  L.map((u) => u.age),
-  find((n) => n < 30),
+  L.map(u => u.age),
+  find(n => n < 30),
   log
 );
 ```
@@ -665,14 +664,14 @@ const takeAll = take(Infinity);
 // const map = curry((f, iter) => go(L.map(f, iter), takeAll)); // args 를 그대로 사용하므로 pipe가자
 const map = curry(pipe(L.map, takeAll));
 const filter = curry(pipe(L.filter, takeAll));
-log(map((a) => a + 10, L.range(4)));
-log(filter((a) => a % 2, L.range(4)));
+log(map(a => a + 10, L.range(4)));
+log(filter(a => a % 2, L.range(4)));
 ```
 
 ## L.flatten, flatten, deepFlatten
 
 ```js
-const isIterable = (a) => a && a[Symbol.iterator];
+const isIterable = a => a && a[Symbol.iterator];
 
 L.flatten = function* (iter) {
   for (const a of iter) {
@@ -702,19 +701,19 @@ log([...L.deepFlat([1, [2, [3, 4], [[5]]]])]);
 
 ```js
 // 기본 flat 사용법
-log([[1, 2], [3, 4], [5, 6, 7], [8]].flatMap((a) => a));
+log([[1, 2], [3, 4], [5, 6, 7], [8]].flatMap(a => a));
 // flat 내에서 map 사용
-log([[1, 2], [3, 4], [5, 6, 7], [8]].flatMap((a) => a.map((b) => b * b)));
+log([[1, 2], [3, 4], [5, 6, 7], [8]].flatMap(a => a.map(b => b * b)));
 // 구현-1_map
-log([[1, 2], [3, 4], [5, 6, 7], [8]].map((a) => a.map((b) => b * b)));
+log([[1, 2], [3, 4], [5, 6, 7], [8]].map(a => a.map(b => b * b)));
 // 구현-2_map+flatten
-log(flatten([[1, 2], [3, 4], [5, 6, 7], [8]].map((a) => a.map((b) => b * b)))); // 하지만 전체 순회를 두 번 하므로 비효율적
+log(flatten([[1, 2], [3, 4], [5, 6, 7], [8]].map(a => a.map(b => b * b)))); // 하지만 전체 순회를 두 번 하므로 비효율적
 
 L.flatMap = curry(pipe(L.map, L.flatten));
 const flatMap = curry(pipe(L.map, flatten)); // takeAll with flatten
 
-log(...L.flatMap((a) => a, [[1, 2], [3, 4], [5, 6, 7], [8]]));
-log(flatMap((a) => a, [[1, 2], [3, 4], [5, 6, 7], [8]]));
+log(...L.flatMap(a => a, [[1, 2], [3, 4], [5, 6, 7], [8]]));
+log(flatMap(a => a, [[1, 2], [3, 4], [5, 6, 7], [8]]));
 
 log(...L.flatMap(L.range, [1, 2, 3])); // 단순히 조회하는게 아니라 추가 함수 적용
 ```
@@ -731,8 +730,8 @@ const arr = [
 go(
   arr,
   L.flatten,
-  L.filter((a) => a % 2),
-  L.map((a) => a * a),
+  L.filter(a => a % 2),
+  L.map(a => a * a),
   take(4),
   reduce(add),
   log
@@ -785,9 +784,9 @@ var users = [
 
 go(
   users,
-  L.flatMap((u) => u.family),
-  L.filter((u) => u.age > 20),
-  L.map((u) => u.age),
+  L.flatMap(u => u.family),
+  L.filter(u => u.age > 20),
+  L.map(u => u.age),
   take(4),
   reduce(add),
   log
@@ -809,9 +808,9 @@ go(
 const add10 = (a, callback) => {
   setTimeout(() => callback(a + 10), 1000);
 };
-const a = add10(5, (res) => {
-  add10(5, (res) => {
-    add10(5, (res) => {
+const a = add10(5, res => {
+  add10(5, res => {
+    add10(5, res => {
       log(res);
     });
   });
@@ -823,8 +822,8 @@ log(a); // => undefined
 
 ```js
 // Promise를 'return'
-const add20 = (a) => {
-  return new Promise((resolve) => setTimeout(() => resolve(a + 20), 1000));
+const add20 = a => {
+  return new Promise(resolve => setTimeout(() => resolve(a + 20), 1000));
 };
 const b = add20(5).then(add20).then(add20).then(log);
 log(b); // => Promise <pending>
@@ -839,9 +838,8 @@ log(b); // => Promise <pending>
 
 ```js
 const go1 = (a, f) => (a instanceof Promise ? a.then(f) : f(a));
-const add5 = (a) => a + 5;
-const delay100 = (a) =>
-  new Promise((resolve) => setTimeout(() => resolve(a), 100));
+const add5 = a => a + 5;
+const delay100 = a => new Promise(resolve => setTimeout(() => resolve(a), 100));
 
 // 동기적으로 바로 값을 알 수 있어야 작동 (Promise가 아니여야)
 // const r = go1(10, add5);
@@ -864,8 +862,8 @@ go1(go1(n2, add5), log);
 - 그중에서도 비동기 상황을 안전하게 합성해주는것이 => Promise
 
 ```js
-const g = (a) => a + 1;
-const f = (a) => a * a;
+const g = a => a + 1;
+const f = a => a * a;
 log(f(g(1)));
 log(f(g())); // 빈 값 전달시 에러, 잘못된 값을 그대로 log
 // 들어올 값을 예측할 수 없을때 어떻게 안정성을 가질 것인가?
@@ -873,19 +871,98 @@ log(f(g())); // 빈 값 전달시 에러, 잘못된 값을 그대로 log
 Array.of(1)
   .map(g)
   .map(f)
-  .forEach((r) => log(r)); // 실제 사용자에게 효과를 전달하는것은 forEach
+  .forEach(r => log(r)); // 실제 사용자에게 효과를 전달하는것은 forEach
 []
   .map(g)
   .map(f)
-  .forEach((r) => log(r)); // elem 없으면 수행 안한다, 값이 몇개일지, 없을지 모르는 상황들에 대한 안정성
+  .forEach(r => log(r)); // elem 없으면 수행 안한다, 값이 몇개일지, 없을지 모르는 상황들에 대한 안정성
 
 Promise.resolve(2)
   .then(g)
   .then(f)
-  .then((r) => log(r));
+  .then(r => log(r));
 
-new Promise((resolve) => setTimeout(() => resolve(2), 100))
+new Promise(resolve => setTimeout(() => resolve(2), 100))
   .then(g)
   .then(f)
-  .then((r) => log(r)); // 값이 있거나 없거나가 아닌 대기인지 성공인지의 상황들에 대한 안정성
+  .then(r => log(r)); // 값이 있거나 없거나가 아닌 대기인지 성공인지의 상황들에 대한 안정성
+```
+
+## Kleisli Composition
+
+- 오류가 있을 수 있는 상황에서의 안정적 함수 합성
+- f . g
+- f(g(x)) = f(g(x)) // 어느 시점에 수행하더라도 같아야 하지만.. state 등의 변화.
+- f(g(x)) = g(x) // 어차피 g(x) 가 에러날거면 둘다 에러인건 같다?
+
+```js
+const users = [
+  { id: 1, name: "aa" },
+  { id: 2, name: "bb" },
+  { id: 3, name: "cc" },
+];
+// const getUserById = id => find(u => u.id == id, users);
+const getUserById = id =>
+  find(u => u.id == id, users) || Promise.reject("없어요!");
+const f = ({ name }) => name;
+const g = getUserById;
+// const fg = id => f(g(id));
+// log(fg(2)); // => bb
+// log(fg(2) == fg(2));
+
+// const r = fg(2);
+users.pop();
+users.pop();
+// const r2 = fg(2); // => undefined error
+
+const fg = id =>
+  Promise.resolve(id)
+    .then(g)
+    .then(f)
+    .catch(e => e); // resolve 결과가 reject이면 다 건너뛰고 catch만 수행
+
+fg(2).then(log); // 엉뚱한 결과 undefined를 받아들이지않고 그 다음함수 수행하지않으며 reject 함 log도 출력안함
+```
+
+## go, pipe, reduce에서 비동기 제어
+
+1. go 중간에 Promise 있으면? => instanceof로 계속 ternary 하면 나머지는 다 비동기(Promise가 되어버림) => 재귀 유명함수 recur 사용
+2. go 처음의 acc가 Promise면? 이때는 go1 을 recur에 씌워 한번만 instanceof로 ternary 하자
+3. 중간에 Promise.reject있으면 ? go 마지막에 .catch 로 에러 잡아서 출력가능
+
+```js
+const go1 = (a, f) => (a instanceof Promise ? a.then(f) : f(a));
+
+const reduce = curry((f, acc, iter) => {
+  if (!iter) {
+    iter = acc[Symbol.iterator]();
+    acc = iter.next().value;
+  } else {
+    iter = iter[Symbol.iterator]();
+  }
+  return go1(acc, function recur(acc) {
+    // 함수를 값으로 다루면서 이름을 짓는 '유명함수'
+    let cur;
+    while (!(cur = iter.next()).done) {
+      const a = cur.value;
+      acc = f(acc, a);
+      // acc = acc instanceof Promise ? acc.then(acc => f(acc, a)) : f(acc, a); // 해결은 되나 이후에는 계속 Promise 이므로 비효율적, 성능저하
+      if (acc instanceof Promise) return acc.then(recur);
+      // 일단 원래대로 실행 하고 Promise 이면 then 이후 재수행
+      // 나머지는 하나의 콜스택에서 수행되므로 효율적
+    }
+    return acc;
+  });
+});
+
+go(
+  Promise.resolve(1), // 첫 acc가 Promise이면 어떻게할것이냐 => go1 사용
+  a => a + 10,
+  a => Promise.resolve(a + 100), // => [object Promise]
+  a => a + 1000,
+  a => Promise.reject("err"),
+  a => log("---"),
+  a => a + 100000,
+  log
+).catch(a => console.log(a));
 ```

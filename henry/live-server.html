@@ -3,29 +3,37 @@
   live-server
   <div id="cart"></div>
   <script>
-    const g = (a) => a + 1;
-    const f = (a) => a * a;
-    log(f(g(1)));
-    log(f(g())); // 빈 값 전달시 에러, 잘못된 값을 그대로 log
-    // 들어올 값을 예측할 수 없을때 어떻게 안정성을 가질 것인가?
-    // [1] = Array.of(1)
-    Array.of(1)
-      .map(g)
-      .map(f)
-      .forEach((r) => log(r)); // 실제 사용자에게 효과를 전달하는것은 forEach
-    []
-      .map(g)
-      .map(f)
-      .forEach((r) => log(r)); // elem 없으면 수행 안한다, 값이 몇개일지, 없을지 모르는 상황들에 대한 안정성
+    const reduce = curry((f, acc, iter) => {
+      if (!iter) {
+        iter = acc[Symbol.iterator]();
+        acc = iter.next().value;
+      } else {
+        iter = iter[Symbol.iterator]();
+      }
+      return go1(acc, function recur(acc) {
+        // 함수를 값으로 다루면서 이름을 짓는 '유명함수'
+        let cur;
+        while (!(cur = iter.next()).done) {
+          const a = cur.value;
+          acc = f(acc, a);
+          // acc = acc instanceof Promise ? acc.then(acc => f(acc, a)) : f(acc, a); // 해결은 되나 이후에는 계속 Promise 이므로 비효율적, 성능저하
+          if (acc instanceof Promise) return acc.then(recur);
+          // 일단 원래대로 실행 하고 Promise 이면 then 이후 재수행
+          // 나머지는 하나의 콜스택에서 수행되므로 효율적
+        }
+        return acc;
+      });
+    });
 
-    Promise.resolve(2)
-      .then(g)
-      .then(f)
-      .then((r) => log(r));
-
-    new Promise((resolve) => setTimeout(() => resolve(2), 100))
-      .then(g)
-      .then(f)
-      .then((r) => log(r)); // 값이 있거나 없거나가 아닌 대기인지 성공인지의 상황들에 대한 안정성
+    go(
+      Promise.resolve(1), // 첫 acc가 Promise이면 어떻게할것이냐 => go1 사용
+      a => a + 10,
+      a => Promise.resolve(a + 100), // => [object Promise]
+      a => a + 1000,
+      a => Promise.reject("err"),
+      a => log("---"),
+      a => a + 100000,
+      log
+    ).catch(a => console.log(a));
   </script>
 </body>
