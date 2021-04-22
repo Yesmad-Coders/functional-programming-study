@@ -966,3 +966,5 @@ go(
   log
 ).catch(a => console.log(a));
 ```
+
+-
