@@ -966,3 +966,8 @@ go(
   log
 ).catch(a => console.log(a));
 ```
+
+## Promise.then의 중요한 규칙
+
+- 중첩된 Promise 여도 한번의 then으로 꺼낼 수 있다.
+- then의 cb는 Promise를 받는것이 아니라 가장 안쪽의 값을 받는다.
