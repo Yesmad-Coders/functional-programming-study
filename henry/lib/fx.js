@@ -7,11 +7,13 @@ const { log } = console;
 //   { name: "후드티", price: 30000, quantity: 4, is_selected: false },
 //   { name: "바지", price: 25000, quantity: 5, is_selected: false },
 // ];
+<<<<<<< HEAD
 
 const add = (a, b) => a + b;
+=======
+>>>>>>> 81c37c3... ~HTML로 출력하기+stevyQ3
 
-const curry = (f) => (a, ..._) =>
-  _.length ? f(a, ..._) : (..._) => f(a, ..._);
+const curry = f => (a, ..._) => (_.length ? f(a, ..._) : (..._) => f(a, ..._));
 
 const map_1 = curry((f, iter) => {
   let res = [];
@@ -39,26 +41,27 @@ const filter_1 = curry((f, iter) => {
   return res;
 });
 
-const reduce = curry((f, acc, iter) => {
-  if (!iter) {
-    iter = acc[Symbol.iterator]();
-    acc = iter.next().value;
-  } else {
-    iter = iter[Symbol.iterator]();
-  }
-  // for (const a of iter) {
-  let cur;
-  while (!(cur = iter.next()).done) {
-    const a = cur.value;
-    acc = f(acc, a);
-  }
-  return acc;
-});
+// const reduce = curry((f, acc, iter) => {
+//   if (!iter) {
+//     iter = acc[Symbol.iterator]();
+//     acc = iter.next().value;
+//   } else {
+//     iter = iter[Symbol.iterator]();
+//   }
+//   // for (const a of iter) {
+//   let cur;
+//   while (!(cur = iter.next()).done) {
+//     const a = cur.value;
+//     acc = f(acc, a);
+//   }
+//   return acc;
+// });
 
 const go = (...args) => reduce((a, f) => f(a), args);
+const go1 = (a, f) => (a instanceof Promise ? a.then(f) : f(a));
 const pipe = (f, ...fs) => (...args) => go(f(...args), ...fs); // fs = functions...
 
-const range = (l) => {
+const range = l => {
   let i = -1;
   let res = [];
   while (++i < l) {
@@ -88,6 +91,8 @@ const take = curry((l, iter) => {
   return res;
 });
 
+const find = curry((f, iter) => go(iter, L.filter(f), take(1), ([a]) => a));
+
 L.map = curry(function* (f, iter) {
   for (const a of iter) {
     // iter = iter[Symbol.iterator]();
@@ -116,7 +121,7 @@ const takeAll = take(Infinity);
 const map = curry(pipe(L.map, takeAll));
 const filter = curry(pipe(L.filter, takeAll));
 
-const isIterable = (a) => a && a[Symbol.iterator];
+const isIterable = a => a && a[Symbol.iterator];
 
 L.flatten = function* (iter) {
   for (const a of iter) {
