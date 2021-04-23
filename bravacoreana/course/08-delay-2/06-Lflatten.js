@@ -26,6 +26,7 @@ L.flatten = function* (iter) {
     else yield a;
   }
 };
+
 const iterator = L.flatten([[1, 2], 3, 4, [5, 6], [7, 8, 9]]);
 log("L.flatten: ", [...iterator]);
 log(
