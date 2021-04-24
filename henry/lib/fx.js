@@ -9,10 +9,13 @@ const { log } = console;
 // ];
 <<<<<<< HEAD
 
+<<<<<<< HEAD
+=======
 const add = (a, b) => a + b;
 =======
 >>>>>>> 81c37c3... ~HTML로 출력하기+stevyQ3
 
+>>>>>>> main
 const curry = f => (a, ..._) => (_.length ? f(a, ..._) : (..._) => f(a, ..._));
 
 const map_1 = curry((f, iter) => {
