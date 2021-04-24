@@ -3,37 +3,11 @@
   live-server
   <div id="cart"></div>
   <script>
-    const reduce = curry((f, acc, iter) => {
-      if (!iter) {
-        iter = acc[Symbol.iterator]();
-        acc = iter.next().value;
-      } else {
-        iter = iter[Symbol.iterator]();
-      }
-      return go1(acc, function recur(acc) {
-        // 함수를 값으로 다루면서 이름을 짓는 '유명함수'
-        let cur;
-        while (!(cur = iter.next()).done) {
-          const a = cur.value;
-          acc = f(acc, a);
-          // acc = acc instanceof Promise ? acc.then(acc => f(acc, a)) : f(acc, a); // 해결은 되나 이후에는 계속 Promise 이므로 비효율적, 성능저하
-          if (acc instanceof Promise) return acc.then(recur);
-          // 일단 원래대로 실행 하고 Promise 이면 then 이후 재수행
-          // 나머지는 하나의 콜스택에서 수행되므로 효율적
-        }
-        return acc;
-      });
+    Promise.resolve(Promise.resolve(1)).then(function (a) {
+      log(a);
     });
-
-    go(
-      Promise.resolve(1), // 첫 acc가 Promise이면 어떻게할것이냐 => go1 사용
-      a => a + 10,
-      a => Promise.resolve(a + 100), // => [object Promise]
-      a => a + 1000,
-      a => Promise.reject("err"),
-      a => log("---"),
-      a => a + 100000,
+    new Promise(resolve => resolve(new Promise(resolve => resolve(1)))).then(
       log
-    ).catch(a => console.log(a));
+    );
   </script>
 </body>

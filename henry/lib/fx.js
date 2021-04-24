@@ -8,8 +8,6 @@ const { log } = console;
 //   { name: "바지", price: 25000, quantity: 5, is_selected: false },
 // ];
 
-const add = (a, b) => a + b;
-
 const curry = f => (a, ..._) => (_.length ? f(a, ..._) : (..._) => f(a, ..._));
 
 const map_1 = curry((f, iter) => {
