@@ -7,8 +7,11 @@ const { log } = console;
 //   { name: "후드티", price: 30000, quantity: 4, is_selected: false },
 //   { name: "바지", price: 25000, quantity: 5, is_selected: false },
 // ];
+<<<<<<< HEAD
 
 const add = (a, b) => a + b;
+=======
+>>>>>>> 81c37c3... ~HTML로 출력하기+stevyQ3
 
 const curry = f => (a, ..._) => (_.length ? f(a, ..._) : (..._) => f(a, ..._));
 
