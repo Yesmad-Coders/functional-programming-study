@@ -979,3 +979,255 @@ Promise.resolve(Promise.resolve(1)).then(function (a) {
 });
 new Promise(resolve => resolve(new Promise(resolve => resolve(1)))).then(log);
 ```
+
+# 비동기:동시성 프로그래밍 2
+
+## 지연 평가 + Promise - L.map, map, take
+
+- generator + promise
+- To handle Promise at L.map: Use go1
+- To handle Promise at take: Use recur()
+
+```js
+L.map = curry(function* (f, iter) {
+  for (const a of iter) {
+    yield go1(a, f);
+  }
+});
+
+const take = curry((l, iter) => {
+  let res = [];
+  iter = iter[Symbol.iterator]();
+  return (function recur() {
+    let cur;
+    while (!(cur = iter.next()).done) {
+      const a = cur.value;
+      if (a instanceof Promise)
+        return a.then(a => ((res.push(a), res).length == l ? res : recur()));
+      res.push(a);
+      if (res.length == l) return res;
+    }
+    return res;
+  })();
+});
+
+go(
+  [Promise.resolve(1), 2, Promise.resolve(3)],
+  L.map(a => Promise.resolve(a + 10)),
+  takeAll,
+  // map(a => Promise.resolve(a + 10)), // L.map + takeAll
+  log
+);
+```
+
+## Kleisli Composition - L.filter, filter, nop, take
+
+- 목표: false 인 element에 대해서 불필요한 연산을 줄이고 바로 catch로 보내자
+- `go1` 을 쓰더라도 f(a)의 값이 여전히 Promise: 한번더 then으로 풀어주고, false이면 사용자정의한 nop과함께 reject
+- reject을 받아주기 위해 `take` 에서 catch 통해 nop 이라면 skip 하고 recur 재수행, 새로운 에러면 에러와 함께 reject
+
+```js
+const nop = Symbol("nop");
+
+L.filter = curry(function* (f, iter) {
+  for (const a of iter) {
+    const b = go1(a, f);
+    if (b instanceof Promise) yield b.then(b => (b ? a : Promise.reject(nop)));
+    else if (b) yield a;
+  }
+});
+
+const take = curry((l, iter) => {
+  let res = [];
+  iter = iter[Symbol.iterator]();
+  return (function recur() {
+    let cur;
+    while (!(cur = iter.next()).done) {
+      const a = cur.value;
+      if (a instanceof Promise) {
+        return a
+          .then(a => ((res.push(a), res).length == l ? res : recur()))
+          .catch(e => (e == nop ? recur() : Promise.reject(e))); // if user defined reject "nop"? skip and recur
+      }
+      res.push(a);
+      if (res.length == l) return res;
+    }
+    return res;
+  })();
+});
+
+go(
+  [1, 2, 3, 4, 5, 6],
+  L.map(a => Promise.resolve(a * a)),
+  L.filter(a => a % 2),
+  take(2),
+  log
+);
+```
+
+## reduce에서 nop 지원
+
+- 복잡한 로직추가는 함수를 분리하자: 기존코드 그대로둘수있다. 가독성 좋다.
+- while 내의 a는 아직 promise 핸들링이 안되고있다. => reduceF
+- then() 의 두번째 인자로도 catch 가능
+- !iter 일떄 acc[Symbol.iterator]().next() 역시 비동기일수 있으므로 => head로 뽑고 문장을 표현식으로 바꿈
+
+```js
+const reduceF = (acc, a, f) =>
+  a instanceof Promise
+    ? a.then(
+        a => f(acc, a),
+        e => (e == nop ? acc : Promise.reject(e))
+      )
+    : f(acc, a);
+
+const head = iter => go1(take(1, iter), ([h]) => h);
+
+const reduce = curry((f, acc, iter) => {
+  if (!iter) return reduce(f, head((iter = acc[Symbol.iterator]())), iter);
+  iter = iter[Symbol.iterator]();
+  return go1(acc, function recur(acc) {
+    let cur;
+    while (!(cur = iter.next()).done) {
+      acc = reduceF(acc, cur.value, f);
+      if (acc instanceof Promise) return acc.then(recur);
+    }
+    return acc;
+  });
+});
+
+go(
+  [1, 2, Promise.resolve(3), 4, 5],
+  L.map(a => Promise.resolve(a * a)),
+  L.filter(a => Promise.resolve(a % 2)),
+  reduce(add),
+  log
+);
+```
+
+## 지연 평가 + Promise의 효율성
+
+- generator를 통해 필요한 값만 연산하기때문에 불필요한 비용을 줄일 수 있다.
+
+```js
+go(
+  [1, 2, 3, 4, 5, 6, 7, 8],
+  L.map(a => {
+    log("map:", a);
+    return new Promise(resolve => setTimeout(() => resolve(a * a), 1000));
+  }),
+  L.filter(a => {
+    log("filter", a);
+    return new Promise(resolve => setTimeout(() => resolve(a % 2), 1000));
+  }),
+  take(2), // vs takeAll
+  log
+);
+```
+
+## 지연된 함수열을 병렬적으로 평가하기 - C.reduce, C.take [1]
+
+- js 보통 비동기i/o로 동작, single thread
+- 하지만 DB(pg, redis)에 날리는 쿼리등 병렬로 수행할 필요 많다
+- C.reduce를 통해 병렬로 처리하고 다시 좌에서 우로 모아서 갚을 도출
+- generator 를 ... 로 풀면 알아서 병렬이돼? iter를 다 실행 시켜버리고 다시 순회하면서 reduce가 평가된다?
+
+```js
+const C = {}; // concurrency
+C.reduce = curry((f, acc, iter) =>
+  iter ? reduce(f, acc, [...iter]) : reduce(f, [...acc])
+);
+```
+
+## 지연된 함수열을 병렬적으로 평가하기 - C.reduce, C.take [2]
+
+- C.reduce with catchNoop
+- C.take
+- catch한 값을 전달하지 않고 평가만해야한다 => forEach 로 평가만 함
+
+```js
+const C = {}; // concurrency
+function noop() {}
+const catchNoop = arr => (
+  arr.forEach(a => (a instanceof Promise ? a.catch(noop) : a)), arr
+);
+// catch 만 하고 catch 한값을 전달해서는 안된다. => 이미 catch했으면 또 catch할 수 없다.
+
+C.reduce = curry((f, acc, iter) => {
+  const iter2 = catchNoop(iter ? [...iter] : [...acc]);
+  return iter ? reduce(f, acc, iter2) : reduce(f, iter2);
+});
+
+C.take = curry((l, iter) => take(l, catchNoop([...iter])));
+
+const delay1000 = a =>
+  new Promise(resolve => {
+    console.log("hi~");
+    setTimeout(() => resolve(a), 1000);
+  });
+
+console.time("");
+go(
+  [1, 2, 3, 4, 5, 6, 7, 8, 9],
+  L.map(a => delay1000(a * a)),
+  L.filter(a => delay1000(a % 2)),
+  L.map(a => delay1000(a * a)),
+  C.take(2),
+  C.reduce(add),
+  log,
+  _ => console.timeEnd("")
+);
+```
+
+## 즉시 병렬적으로 평가하기 - C.map, C.filter
+
+- 즉시? 특정함수만 C로 변경하여 선택적 병렬 처리
+
+```js
+C.takeAll = C.take(Infinity);
+C.map = curry(pipe(L.map, C.takeAll));
+C.filter = curry(pipe(L.filter, C.takeAll));
+
+C.map(a => delay1000(a * a), [1, 2, 3, 4]).then(log);
+C.filter(a => delay1000(a % 2), [1, 2, 3, 4]).then(log);
+```
+
+## 즉시, 지연, Promise, 병렬적 조합하기
+
+```js
+const delay1000 = (a, name) =>
+  new Promise(resolve => {
+    log(`${name}: ${a}`);
+    setTimeout(() => resolve(a), 1000);
+  });
+
+console.time("");
+go(
+  [1, 2, 3, 4, 5, 6, 7, 8],
+  L.map(a => delay1000(a * a, "map1")),
+  C.filter(a => delay1000(a % 2, "filter2")),
+  L.map(a => delay1000(a + 1, "map3")),
+  take(2),
+  // C.reduce(add),
+  log,
+  _ => console.timeEnd("")
+);
+```
+
+## 코드 간단히 정리
+
+```js
+const catchNoop = ([...arr]) => (
+  arr.forEach(a => (a instanceof Promise ? a.catch(noop) : a)), arr
+);
+
+C.reduce = curry((f, acc, iter) =>
+  iter ? reduce(f, acc, catchNoop(iter)) : reduce(f, catchNoop(acc))
+);
+
+C.take = curry((l, iter) => take(l, catchNoop(iter)));
+```
+
+## Node.js에서 SQL 병렬 평가로 얻은 효율
+
+- https://github.com/marpple/FxSQL
