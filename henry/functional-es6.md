@@ -1231,3 +1231,42 @@ C.take = curry((l, iter) => take(l, catchNoop(iter)));
 ## Node.js에서 SQL 병렬 평가로 얻은 효율
 
 - https://github.com/marpple/FxSQL
+
+# 비동기:동시성 프로그래밍 3
+
+## async:await
+
+- 비동기 상황을 보다 동기적으로 다룰 수 있게 해준다.
+- haskel의 do notaion과 유사
+
+### await 으로 감싸져있으면 Promise안보이지만 가장 내부에는 Promise가 return 되어야함
+
+### async 함수 안에서는 resolve된 값을 사용, log()할 수 있지만 밖으로 return을 하면 Promise 이다. => .then 사용해야함
+
+```js
+const delay = time => {
+  return new Promise(resolve => setTimeout(() => resolve(), time));
+};
+const delayIndentify = async a => {
+  await delay(500);
+  return a;
+};
+const f1 = async () => {
+  const a = await delayIndentify(10);
+  const b = await delayIndentify(5);
+  // log(a + b);
+  return a + b;
+};
+log(f1()); // Promise
+f1().then(log); // 15
+go1(f1(), log); // 15
+(async () => {
+  log(await f1()); // 15
+})();
+const pa = Promise.resolve(10);
+const pb = f1();
+(async () => {
+  log(await pa); // 10
+  log(await pb); // 15
+})();
+```
